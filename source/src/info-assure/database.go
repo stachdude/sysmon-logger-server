@@ -114,9 +114,10 @@ type CreateRemoteThread struct {
 	StartFunction	string	`db:"start_function"`
 }
 
-// Represents an "summary" record
-type Summary struct {
+// Represents an "export" record
+type Export struct {
 	Id       	int64 		`db:"id"`
 	DataType 	string 		`db:"data_type"`
 	FileName 	string 		`db:"file_name"`
+	Updated 	time.Time	`db:"updated"`
 }

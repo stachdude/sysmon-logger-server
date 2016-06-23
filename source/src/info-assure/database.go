@@ -113,3 +113,10 @@ type CreateRemoteThread struct {
 	StartModule		string	`db:"start_module"`
 	StartFunction	string	`db:"start_function"`
 }
+
+// Represents an "summary" record
+type Summary struct {
+	Id       	int64 		`db:"id"`
+	DataType 	string 		`db:"data_type"`
+	FileName 	string 		`db:"file_name"`
+}

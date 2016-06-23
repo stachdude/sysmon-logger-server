@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgutz/dat.v1"
 	"gopkg.in/mgutz/dat.v1/sqlx-runner"
+    "github.com/robfig/cron"
 	"gopkg.in/yaml.v2"
 	util "github.com/woanware/goutil"
 	"database/sql"
@@ -28,6 +29,7 @@ var (
 	config  	*Config
 	workQueue   chan ImportTask
 	db			*runner.DB
+    cronner 	*cron.Cron
 )
 
 // ##### Methods #############################################################
@@ -52,6 +54,11 @@ func main() {
 
 	initialiseDatabase()
 	createProcessors()
+
+    cronner = cron.New()
+    cronner.AddFunc("1 * * * * *", performHourlyTasks)
+    //cronner.AddFunc("@hourly", performHourlyTasks)
+    cronner.Start()
 
 	var r *gin.Engine
 	if config.Debug == false {
@@ -168,12 +175,12 @@ func loadConfig(configPath string) (*Config) {
 	c := new(Config)
 	data, err := util.ReadTextFromFile(configPath)
 	if err != nil {
-		logger.Fatal("Error reading the config file: %v", err)
+		logger.Fatalf("Error reading the config file: %v", err)
 	}
 
 	err = yaml.Unmarshal([]byte(data), &c)
 	if err != nil {
-		logger.Fatal("Error unmarshalling the config file: %v", err)
+		logger.Fatalf("Error unmarshalling the config file: %v", err)
 	}
 
 	if len(c.DatabaseServer) == 0 {
@@ -205,4 +212,72 @@ func loadConfig(configPath string) (*Config) {
 	}
 
 	return c
+}
+
+//
+func performHourlyTasks() {
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH, "Process Create (Path, SHA256) By Path",
+        SUMMARY_TYPE_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_HASH, "Process Create (Path, SHA256) By Hash",
+        SUMMARY_TYPE_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_PATH, "Process Create (Path, MD5) By Path",
+        SUMMARY_TYPE_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_HASH, "Process Create (Path, MD5) By Hash",
+        SUMMARY_TYPE_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_PROCESS_CREATE_PATH_MD5_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH, "Driver Loaded (Path, SHA256) By Path",
+        SUMMARY_TYPE_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH, "Driver Loaded (Path, SHA256) By Hash",
+        SUMMARY_TYPE_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_DRIVER_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH, "Driver Loaded (Path, MD5) By Path",
+        SUMMARY_TYPE_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH, "Driver Loaded (Path, MD5) By Hash",
+        SUMMARY_TYPE_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_DRIVER_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH, "Image Loaded (Path, SHA256) By Path",
+        SUMMARY_TYPE_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH, "Image Loaded (Path, SHA256) By Hash",
+        SUMMARY_TYPE_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_IMAGE_LOADED_PATH_SHA256_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH, "Image Loaded (Path, MD5) By Path",
+        SUMMARY_TYPE_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH, PREFIX_SUMMARY_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH)
+
+    exportProcessCreateSummaryDataForStringStringTotal(
+        SQL_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH, "Image Loaded (Path, MD5) By Hash",
+        SUMMARY_TYPE_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH, PREFIX_SUMMARY_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH)
+
+    exportProcessCreateSummaryDataForString(
+        SQL_NETWORK_CONNECTION_DISTINCT_DEST_IP, "Network Connection (Destination IP)",
+        SUMMARY_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP, PREFIX_SUMMARY_NETWORK_CONNECTION_DISTINCT_DEST_IP)
+
+    exportProcessCreateSummaryDataForStringTotal(
+        SQL_NETWORK_CONNECTION_COUNT_DEST_IP, "Network Connection (Destination IP Count)",
+        SUMMARY_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP_COUNT, PREFIX_SUMMARY_NETWORK_CONNECTION_DISTINCT_DEST_IP_COUNT)
+
+    exportProcessCreateSummaryDataForString(
+        SQL_NETWORK_CONNECTION_DISTINCT_DEST_HOST, "Network Connection (Destination Host)",
+        SUMMARY_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST, PREFIX_SUMMARY_NETWORK_CONNECTION_DISTINCT_DEST_HOST)
+
+    exportProcessCreateSummaryDataForStringTotal(
+        SQL_NETWORK_CONNECTION_COUNT_DEST_HOST, "Network Connection (Destination Host Count)",
+        SUMMARY_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST_COUNT, PREFIX_SUMMARY_NETWORK_CONNECTION_DISTINCT_DEST_HOST_COUNT)
+
 }

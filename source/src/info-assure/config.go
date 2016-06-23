@@ -20,5 +20,7 @@ type Config struct {
 	Debug				bool	`yaml:"debug"`
     ServerPem			string	`yaml:"server_pem"`
     ServerKey			string	`yaml:"server_key"`
+    TempDir				string	`yaml:"temp_dir"`
+    SummaryDir			string	`yaml:"summary_dir"`
 }
 

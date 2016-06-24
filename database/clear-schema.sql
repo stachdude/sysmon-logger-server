@@ -16,11 +16,11 @@ ALTER SEQUENCE network_connection_id_seq RESTART WITH 1;
 TRUNCATE TABLE process_create;
 ALTER SEQUENCE process_create_id_seq RESTART WITH 1;
 
-TRUNCATE TABLE process_terminated;
-ALTER SEQUENCE process_terminated_id_seq RESTART WITH 1;
+TRUNCATE TABLE process_terminate;
+ALTER SEQUENCE process_terminate_id_seq RESTART WITH 1;
 
-TRUNCATE TABLE raw_access;
-ALTER SEQUENCE raw_access_id_seq RESTART WITH 1;
+TRUNCATE TABLE raw_access_read;
+ALTER SEQUENCE raw_access_read_id_seq RESTART WITH 1;
 
-TRUNCATE TABLE unified;
-ALTER SEQUENCE unified_id_seq RESTART WITH 1;
+TRUNCATE TABLE event;
+ALTER SEQUENCE event_id_seq RESTART WITH 1;

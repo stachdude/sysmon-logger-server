@@ -1,11 +1,11 @@
---
+﻿--
 -- PostgreSQL database dump
 --
 
 -- Dumped from database version 9.5.3
 -- Dumped by pg_dump version 9.5.3
 
--- Started on 2016-06-22 10:38:53 BST
+-- Started on 2016-06-24 15:04:58 BST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,11 +17,12 @@ SET row_security = off;
 
 DROP DATABASE sml;
 --
--- TOC entry 2219 (class 1262 OID 18031)
+-- TOC entry 2231 (class 1262 OID 18031)
 -- Name: sml; Type: DATABASE; Schema: -; Owner: -
 --
 
 CREATE DATABASE sml WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_GB.UTF-8' LC_CTYPE = 'en_GB.UTF-8';
+
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -40,7 +41,7 @@ CREATE SCHEMA public;
 
 
 --
--- TOC entry 2220 (class 0 OID 0)
+-- TOC entry 2232 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
@@ -57,7 +58,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2222 (class 0 OID 0)
+-- TOC entry 2233 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
 --
@@ -67,12 +68,10 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
-SET default_tablespace = '';
-
 SET default_with_oids = false;
 
 --
--- TOC entry 181 (class 1259 OID 18032)
+-- TOC entry 185 (class 1259 OID 18161)
 -- Name: create_remote_thread; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -93,7 +92,7 @@ CREATE TABLE create_remote_thread (
 
 
 --
--- TOC entry 182 (class 1259 OID 18038)
+-- TOC entry 186 (class 1259 OID 18167)
 -- Name: create_remote_thread_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -106,8 +105,8 @@ CREATE SEQUENCE create_remote_thread_id_seq
 
 
 --
--- TOC entry 2223 (class 0 OID 0)
--- Dependencies: 182
+-- TOC entry 2234 (class 0 OID 0)
+-- Dependencies: 186
 -- Name: create_remote_thread_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -115,7 +114,7 @@ ALTER SEQUENCE create_remote_thread_id_seq OWNED BY create_remote_thread.id;
 
 
 --
--- TOC entry 183 (class 1259 OID 18040)
+-- TOC entry 187 (class 1259 OID 18169)
 -- Name: driver_loaded; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -133,7 +132,7 @@ CREATE TABLE driver_loaded (
 
 
 --
--- TOC entry 184 (class 1259 OID 18046)
+-- TOC entry 188 (class 1259 OID 18175)
 -- Name: driver_loaded_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -146,8 +145,8 @@ CREATE SEQUENCE driver_loaded_id_seq
 
 
 --
--- TOC entry 2224 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2235 (class 0 OID 0)
+-- Dependencies: 188
 -- Name: driver_loaded_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -155,7 +154,58 @@ ALTER SEQUENCE driver_loaded_id_seq OWNED BY driver_loaded.id;
 
 
 --
--- TOC entry 185 (class 1259 OID 18048)
+-- TOC entry 181 (class 1259 OID 18096)
+-- Name: event; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE event (
+    id bigint NOT NULL,
+    domain text,
+    host text,
+    utc_time timestamp without time zone,
+    type text,
+    message text,
+    message_html text
+);
+
+
+--
+-- TOC entry 182 (class 1259 OID 18102)
+-- Name: event_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE event_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 2236 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE event_id_seq OWNED BY event.id;
+
+
+--
+-- TOC entry 184 (class 1259 OID 18149)
+-- Name: export; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE export (
+    id bigint NOT NULL,
+    data_type integer,
+    file_name text,
+    updated timestamp without time zone
+);
+
+
+--
+-- TOC entry 189 (class 1259 OID 18285)
 -- Name: file_creation_time; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -173,7 +223,7 @@ CREATE TABLE file_creation_time (
 
 
 --
--- TOC entry 186 (class 1259 OID 18054)
+-- TOC entry 190 (class 1259 OID 18291)
 -- Name: file_creation_time_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -186,8 +236,8 @@ CREATE SEQUENCE file_creation_time_id_seq
 
 
 --
--- TOC entry 2225 (class 0 OID 0)
--- Dependencies: 186
+-- TOC entry 2237 (class 0 OID 0)
+-- Dependencies: 190
 -- Name: file_creation_time_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -195,7 +245,7 @@ ALTER SEQUENCE file_creation_time_id_seq OWNED BY file_creation_time.id;
 
 
 --
--- TOC entry 187 (class 1259 OID 18056)
+-- TOC entry 191 (class 1259 OID 18293)
 -- Name: image_loaded; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -215,7 +265,7 @@ CREATE TABLE image_loaded (
 
 
 --
--- TOC entry 188 (class 1259 OID 18062)
+-- TOC entry 192 (class 1259 OID 18299)
 -- Name: image_loaded_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -228,8 +278,8 @@ CREATE SEQUENCE image_loaded_id_seq
 
 
 --
--- TOC entry 2226 (class 0 OID 0)
--- Dependencies: 188
+-- TOC entry 2238 (class 0 OID 0)
+-- Dependencies: 192
 -- Name: image_loaded_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -237,7 +287,7 @@ ALTER SEQUENCE image_loaded_id_seq OWNED BY image_loaded.id;
 
 
 --
--- TOC entry 189 (class 1259 OID 18064)
+-- TOC entry 193 (class 1259 OID 18301)
 -- Name: network_connection; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -263,7 +313,7 @@ CREATE TABLE network_connection (
 
 
 --
--- TOC entry 190 (class 1259 OID 18070)
+-- TOC entry 194 (class 1259 OID 18307)
 -- Name: network_connection_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -276,8 +326,8 @@ CREATE SEQUENCE network_connection_id_seq
 
 
 --
--- TOC entry 2227 (class 0 OID 0)
--- Dependencies: 190
+-- TOC entry 2239 (class 0 OID 0)
+-- Dependencies: 194
 -- Name: network_connection_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -285,7 +335,7 @@ ALTER SEQUENCE network_connection_id_seq OWNED BY network_connection.id;
 
 
 --
--- TOC entry 191 (class 1259 OID 18072)
+-- TOC entry 195 (class 1259 OID 18309)
 -- Name: process_create; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -308,7 +358,7 @@ CREATE TABLE process_create (
 
 
 --
--- TOC entry 192 (class 1259 OID 18078)
+-- TOC entry 196 (class 1259 OID 18315)
 -- Name: process_create_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -321,8 +371,8 @@ CREATE SEQUENCE process_create_id_seq
 
 
 --
--- TOC entry 2228 (class 0 OID 0)
--- Dependencies: 192
+-- TOC entry 2240 (class 0 OID 0)
+-- Dependencies: 196
 -- Name: process_create_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
@@ -330,7 +380,7 @@ ALTER SEQUENCE process_create_id_seq OWNED BY process_create.id;
 
 
 --
--- TOC entry 193 (class 1259 OID 18080)
+-- TOC entry 197 (class 1259 OID 18317)
 -- Name: process_terminate; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -345,11 +395,11 @@ CREATE TABLE process_terminate (
 
 
 --
--- TOC entry 194 (class 1259 OID 18086)
--- Name: process_terminated_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- TOC entry 198 (class 1259 OID 18323)
+-- Name: process_terminate_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE process_terminated_id_seq
+CREATE SEQUENCE process_terminate_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -358,16 +408,16 @@ CREATE SEQUENCE process_terminated_id_seq
 
 
 --
--- TOC entry 2229 (class 0 OID 0)
--- Dependencies: 194
--- Name: process_terminated_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- TOC entry 2241 (class 0 OID 0)
+-- Dependencies: 198
+-- Name: process_terminate_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE process_terminated_id_seq OWNED BY process_terminate.id;
+ALTER SEQUENCE process_terminate_id_seq OWNED BY process_terminate.id;
 
 
 --
--- TOC entry 195 (class 1259 OID 18088)
+-- TOC entry 199 (class 1259 OID 18325)
 -- Name: raw_access_read; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -383,11 +433,11 @@ CREATE TABLE raw_access_read (
 
 
 --
--- TOC entry 196 (class 1259 OID 18094)
--- Name: raw_access_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- TOC entry 200 (class 1259 OID 18331)
+-- Name: raw_access_read_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE raw_access_id_seq
+CREATE SEQUENCE raw_access_read_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -396,35 +446,20 @@ CREATE SEQUENCE raw_access_id_seq
 
 
 --
--- TOC entry 2230 (class 0 OID 0)
--- Dependencies: 196
--- Name: raw_access_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- TOC entry 2242 (class 0 OID 0)
+-- Dependencies: 200
+-- Name: raw_access_read_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE raw_access_id_seq OWNED BY raw_access_read.id;
-
-
---
--- TOC entry 197 (class 1259 OID 18096)
--- Name: unified; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE unified (
-    id bigint NOT NULL,
-    domain text,
-    host text,
-    utc_time timestamp without time zone,
-    type text,
-    message text
-);
+ALTER SEQUENCE raw_access_read_id_seq OWNED BY raw_access_read.id;
 
 
 --
--- TOC entry 198 (class 1259 OID 18102)
--- Name: unified_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- TOC entry 183 (class 1259 OID 18147)
+-- Name: summary_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE unified_id_seq
+CREATE SEQUENCE summary_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -433,16 +468,16 @@ CREATE SEQUENCE unified_id_seq
 
 
 --
--- TOC entry 2231 (class 0 OID 0)
--- Dependencies: 198
--- Name: unified_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- TOC entry 2243 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: summary_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE unified_id_seq OWNED BY unified.id;
+ALTER SEQUENCE summary_id_seq OWNED BY export.id;
 
 
 --
--- TOC entry 2074 (class 2604 OID 18104)
+-- TOC entry 2083 (class 2604 OID 18358)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -450,7 +485,7 @@ ALTER TABLE ONLY create_remote_thread ALTER COLUMN id SET DEFAULT nextval('creat
 
 
 --
--- TOC entry 2075 (class 2604 OID 18105)
+-- TOC entry 2084 (class 2604 OID 18359)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -458,7 +493,23 @@ ALTER TABLE ONLY driver_loaded ALTER COLUMN id SET DEFAULT nextval('driver_loade
 
 
 --
--- TOC entry 2076 (class 2604 OID 18106)
+-- TOC entry 2081 (class 2604 OID 18737)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY event ALTER COLUMN id SET DEFAULT nextval('event_id_seq'::regclass);
+
+
+--
+-- TOC entry 2082 (class 2604 OID 18152)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY export ALTER COLUMN id SET DEFAULT nextval('summary_id_seq'::regclass);
+
+
+--
+-- TOC entry 2085 (class 2604 OID 18360)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -466,7 +517,7 @@ ALTER TABLE ONLY file_creation_time ALTER COLUMN id SET DEFAULT nextval('file_cr
 
 
 --
--- TOC entry 2077 (class 2604 OID 18107)
+-- TOC entry 2086 (class 2604 OID 18361)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -474,7 +525,7 @@ ALTER TABLE ONLY image_loaded ALTER COLUMN id SET DEFAULT nextval('image_loaded_
 
 
 --
--- TOC entry 2078 (class 2604 OID 18108)
+-- TOC entry 2087 (class 2604 OID 18362)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -482,7 +533,7 @@ ALTER TABLE ONLY network_connection ALTER COLUMN id SET DEFAULT nextval('network
 
 
 --
--- TOC entry 2079 (class 2604 OID 18109)
+-- TOC entry 2088 (class 2604 OID 18363)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -490,31 +541,23 @@ ALTER TABLE ONLY process_create ALTER COLUMN id SET DEFAULT nextval('process_cre
 
 
 --
--- TOC entry 2080 (class 2604 OID 18110)
+-- TOC entry 2089 (class 2604 OID 18364)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY process_terminate ALTER COLUMN id SET DEFAULT nextval('process_terminated_id_seq'::regclass);
+ALTER TABLE ONLY process_terminate ALTER COLUMN id SET DEFAULT nextval('process_terminate_id_seq'::regclass);
 
 
 --
--- TOC entry 2081 (class 2604 OID 18111)
+-- TOC entry 2090 (class 2604 OID 18365)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY raw_access_read ALTER COLUMN id SET DEFAULT nextval('raw_access_id_seq'::regclass);
+ALTER TABLE ONLY raw_access_read ALTER COLUMN id SET DEFAULT nextval('raw_access_read_id_seq'::regclass);
 
 
 --
--- TOC entry 2082 (class 2604 OID 18112)
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY unified ALTER COLUMN id SET DEFAULT nextval('unified_id_seq'::regclass);
-
-
---
--- TOC entry 2084 (class 2606 OID 18114)
+-- TOC entry 2098 (class 2606 OID 18357)
 -- Name: create_remote_thread_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -523,7 +566,7 @@ ALTER TABLE ONLY create_remote_thread
 
 
 --
--- TOC entry 2086 (class 2606 OID 18116)
+-- TOC entry 2100 (class 2606 OID 18355)
 -- Name: driver_loaded_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -532,7 +575,34 @@ ALTER TABLE ONLY driver_loaded
 
 
 --
--- TOC entry 2088 (class 2606 OID 18118)
+-- TOC entry 2092 (class 2606 OID 18130)
+-- Name: event_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY event
+    ADD CONSTRAINT event_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2094 (class 2606 OID 18159)
+-- Name: export_file_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY export
+    ADD CONSTRAINT export_file_name_key UNIQUE (file_name);
+
+
+--
+-- TOC entry 2096 (class 2606 OID 18157)
+-- Name: export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY export
+    ADD CONSTRAINT export_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2102 (class 2606 OID 18353)
 -- Name: file_creation_time_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -541,7 +611,7 @@ ALTER TABLE ONLY file_creation_time
 
 
 --
--- TOC entry 2090 (class 2606 OID 18120)
+-- TOC entry 2104 (class 2606 OID 18351)
 -- Name: image_loaded_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -550,7 +620,7 @@ ALTER TABLE ONLY image_loaded
 
 
 --
--- TOC entry 2092 (class 2606 OID 18122)
+-- TOC entry 2106 (class 2606 OID 18349)
 -- Name: network_connection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -559,7 +629,7 @@ ALTER TABLE ONLY network_connection
 
 
 --
--- TOC entry 2094 (class 2606 OID 18124)
+-- TOC entry 2108 (class 2606 OID 18347)
 -- Name: process_create_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -568,7 +638,7 @@ ALTER TABLE ONLY process_create
 
 
 --
--- TOC entry 2096 (class 2606 OID 18126)
+-- TOC entry 2110 (class 2606 OID 18345)
 -- Name: process_terminate_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -577,36 +647,15 @@ ALTER TABLE ONLY process_terminate
 
 
 --
--- TOC entry 2098 (class 2606 OID 18128)
--- Name: raw_access_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- TOC entry 2112 (class 2606 OID 18343)
+-- Name: raw_access_read_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY raw_access_read
-    ADD CONSTRAINT raw_access_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT raw_access_read_pkey PRIMARY KEY (id);
 
 
---
--- TOC entry 2100 (class 2606 OID 18130)
--- Name: unified_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY unified
-    ADD CONSTRAINT unified_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 2221 (class 0 OID 0)
--- Dependencies: 6
--- Name: public; Type: ACL; Schema: -; Owner: -
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO PUBLIC;
-
-
--- Completed on 2016-06-22 10:38:53 BST
+-- Completed on 2016-06-24 15:04:58 BST
 
 --
 -- PostgreSQL database dump complete

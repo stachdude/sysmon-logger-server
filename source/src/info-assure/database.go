@@ -17,8 +17,9 @@ type Base struct {
 // Represents an "event" record
 type Event struct {
     Base
-    Type	string	`db:"type"`
-    Message	string	`db:"message"`
+    Type	    string	`db:"type"`
+    Message	    string	`db:"message"`
+    MessageHtml	string	`db:"message_html"`
 }
 
 // Represents an "process" record

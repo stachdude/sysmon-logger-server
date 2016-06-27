@@ -1,11 +1,11 @@
-﻿--
+--
 -- PostgreSQL database dump
 --
 
 -- Dumped from database version 9.5.3
 -- Dumped by pg_dump version 9.5.3
 
--- Started on 2016-06-24 15:04:58 BST
+-- Started on 2016-06-27 15:20:07 BST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -14,40 +14,6 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
-
-DROP DATABASE sml;
---
--- TOC entry 2231 (class 1262 OID 18031)
--- Name: sml; Type: DATABASE; Schema: -; Owner: -
---
-
-CREATE DATABASE sml WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_GB.UTF-8' LC_CTYPE = 'en_GB.UTF-8';
-
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET row_security = off;
-
---
--- TOC entry 6 (class 2615 OID 2200)
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA public;
-
-
---
--- TOC entry 2232 (class 0 OID 0)
--- Dependencies: 6
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON SCHEMA public IS 'standard public schema';
-
 
 --
 -- TOC entry 1 (class 3079 OID 12393)
@@ -655,7 +621,7 @@ ALTER TABLE ONLY raw_access_read
     ADD CONSTRAINT raw_access_read_pkey PRIMARY KEY (id);
 
 
--- Completed on 2016-06-24 15:04:58 BST
+-- Completed on 2016-06-27 15:20:08 BST
 
 --
 -- PostgreSQL database dump complete

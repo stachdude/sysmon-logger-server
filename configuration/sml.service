@@ -1,0 +1,8 @@
+[Unit]
+Description=SML
+
+[Service]
+ExecStart=/opt/sml/sml -c /opt/sml/sml.config
+
+[Install]
+WantedBy=multi-user.target

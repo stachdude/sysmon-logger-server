@@ -149,7 +149,7 @@ func exportDataForStringStringTotal(sql string, typeName string, dataType int, p
         if util.DoesFileExist(path.Join(config.TempDir, tf.Name())) == true {
             err := os.Remove(path.Join(config.TempDir, tf.Name()))
             if err != nil {
-                logger.Errorf("Error deleting temporary %s summary file: %v (%s)", typeName, err, tf.Name)
+                logger.Errorf("Error deleting temporary %s export file: %v (%s)", typeName, err, tf.Name)
             }
         }
     }()
@@ -171,12 +171,12 @@ func exportDataForStringStringTotal(sql string, typeName string, dataType int, p
     }
 
     timestamp := time.Now().UTC()
-    fileName := prefix + timestamp.Format(LAYOUT_DAILY_SUMMARY) + ".csv"
+    fileName := prefix + timestamp.Format(LAYOUT_DAILY_EXPORT) + ".csv"
 
     // Move the file
-    err = os.Rename(tf.Name(), path.Join(config.SummaryDir, fileName))
+    err = os.Rename(tf.Name(), path.Join(config.ExportDir, fileName))
     if err != nil {
-        logger.Errorf("Error moving file to summary directory: %v (%s)", err, fileName)
+        logger.Errorf("Error moving file to export directory: %v (%s)", err, fileName)
         return
     }
 
@@ -194,7 +194,7 @@ func exportDataForStringTotal(sql string, typeName string, dataType int, prefix 
     }
     defer rows.Close()
 
-    tf, err:= ioutil.TempFile(config.TempDir, "sml-summary-")
+    tf, err:= ioutil.TempFile(config.TempDir, "sml-export-")
     if err != nil {
         logger.Errorf("Error creating temp file for %s export: %v", typeName, err)
         return
@@ -205,7 +205,7 @@ func exportDataForStringTotal(sql string, typeName string, dataType int, prefix 
         if util.DoesFileExist(path.Join(config.TempDir, tf.Name())) == true {
             err := os.Remove(path.Join(config.TempDir, tf.Name()))
             if err != nil {
-                logger.Errorf("Error deleting temporary %s summary file: %v (%s)", typeName, err, tf.Name)
+                logger.Errorf("Error deleting temporary %s export file: %v (%s)", typeName, err, tf.Name)
             }
         }
     }()
@@ -226,12 +226,12 @@ func exportDataForStringTotal(sql string, typeName string, dataType int, prefix 
     }
 
     timestamp := time.Now().UTC()
-    fileName := prefix + timestamp.Format(LAYOUT_DAILY_SUMMARY) + ".csv"
+    fileName := prefix + timestamp.Format(LAYOUT_DAILY_EXPORT) + ".csv"
 
     // Move the file
-    err = os.Rename(tf.Name(), path.Join(config.SummaryDir, fileName))
+    err = os.Rename(tf.Name(), path.Join(config.ExportDir, fileName))
     if err != nil {
-        logger.Errorf("Error moving file to summary directory: %v (%s)", err, fileName)
+        logger.Errorf("Error moving file to export directory: %v (%s)", err, fileName)
         return
     }
 
@@ -248,7 +248,7 @@ func exportDataForString(sql string, typeName string, dataType int, prefix strin
     }
     defer rows.Close()
 
-    tf, err:= ioutil.TempFile(config.TempDir, "sml-summary-")
+    tf, err:= ioutil.TempFile(config.TempDir, "sml-export-")
     if err != nil {
         logger.Errorf("Error creating temp file for %s export: %v", typeName, err)
         return
@@ -259,7 +259,7 @@ func exportDataForString(sql string, typeName string, dataType int, prefix strin
         if util.DoesFileExist(path.Join(config.TempDir, tf.Name())) == true {
             err := os.Remove(path.Join(config.TempDir, tf.Name()))
             if err != nil {
-                logger.Errorf("Error deleting temporary %s summary file: %v (%s)", typeName, err, tf.Name)
+                logger.Errorf("Error deleting temporary %s export file: %v (%s)", typeName, err, tf.Name)
             }
         }
     }()
@@ -277,12 +277,12 @@ func exportDataForString(sql string, typeName string, dataType int, prefix strin
     }
 
     timestamp := time.Now().UTC()
-    fileName := prefix + timestamp.Format(LAYOUT_DAILY_SUMMARY) + ".csv"
+    fileName := prefix + timestamp.Format(LAYOUT_DAILY_EXPORT) + ".csv"
 
     // Move the file
-    err = os.Rename(tf.Name(), path.Join(config.SummaryDir, fileName))
+    err = os.Rename(tf.Name(), path.Join(config.ExportDir, fileName))
     if err != nil {
-        logger.Errorf("Error moving file to summary directory: %v (%s)", err, fileName)
+        logger.Errorf("Error moving file to export directory: %v (%s)", err, fileName)
         return
     }
 

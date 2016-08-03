@@ -215,8 +215,8 @@ func loadConfig(configPath string) (*Config) {
         logger.Fatal("Temp directory not set in config file")
     }
 
-    if len(c.SummaryDir) == 0 {
-        logger.Fatal("Summary dir not set in config file")
+    if len(c.ExportDir) == 0 {
+        logger.Fatal("Export directory not set in config file")
     }
 
 	return c

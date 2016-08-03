@@ -25,6 +25,25 @@ sudo -u postgres createdb sml
 sudo psql -U postgres -W -f schema.sql -h 127.0.0.1 -d sml
 ```
 
+### Other Database commands
+
+- Login to postgres and prompt for password
+```
+psql -U postgres -h 127.0.0.1 -W
+```
+- List databases via psql
+```
+\list
+```
+- Drop database
+```
+drop database "sml"
+```
+- Create database
+```
+create database "sml"
+```
+
 ## Golang
 
 In order to compile the server source code, the golang toolset must be installed. If only release versions are to be used then this step is not necessary.

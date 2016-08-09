@@ -140,8 +140,8 @@ sml
 server.key
 server.pem
 ```
-- Set the appropriate configuration options in the config file (arl.config). The configuration values are detailed in the **configuration.pdf** document.
-- If the server is to be run on the lower TCP ports such as 80 or 81, then edit the **sml-setbind.sh** file  with the correct paths (if they differ). The file is used to set execute options on the **arl** binary and to allow it to bind to lower TCP ports. The file should be run each time the binary is changed. The files default contents are:
+- Set the appropriate configuration options in the config file (sml-server.config). The configuration values are detailed in the **configuration.pdf** document.
+- If the server is to be run on the lower TCP ports such as 80 or 81, then edit the **sml-setbind.sh** file  with the correct paths (if they differ). The file is used to set execute options on the **sml** binary and to allow it to bind to lower TCP ports. The file should be run each time the binary is changed. The files default contents are:
 ```
 #!/bin/sh
 chmod +x /opt/sml/sml
@@ -157,7 +157,7 @@ sudo nano /etc/systemd/system/sml.service
 Description=SML
 
 [Service]
-ExecStart=/opt/arl/arl -c /opt/sml/sml.config
+ExecStart=/opt/sml/sml -c /opt/sml/sml.config
 
 [Install]
 WantedBy=multi-user.target

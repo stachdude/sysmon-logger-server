@@ -20,7 +20,7 @@ import (
 
 const APP_TITLE string = "SysMon Logger"
 const APP_NAME string = "sml-server"
-const APP_VERSION string = "0.0.1"
+const APP_VERSION string = "1.0.1"
 
 // ##### Variables ###########################################################
 
@@ -36,6 +36,7 @@ var (
 
 // Application entry point
 func main() {
+
 	fmt.Printf("\n%s (%s) %s\n\n", APP_TITLE, APP_NAME, APP_VERSION)
 
 	initialiseLogging()
@@ -78,6 +79,7 @@ func main() {
 
 //
 func initialiseDatabase() {
+
 	// create a normal database connection through database/sql
 	tempDb, err := sql.Open("postgres",
 		fmt.Sprintf("host=%s dbname=%s user=%s password=%s sslmode=disable",
@@ -110,6 +112,7 @@ func initialiseDatabase() {
 
 // Initialise the channels for the cross process comms and then start the workers
 func createProcessors() {
+
 	processorCount := runtime.NumCPU()
 	if config.ProcessorThreads > 0 {
 		processorCount = config.ProcessorThreads
@@ -172,6 +175,7 @@ func initialiseLogging() {
 
 // Loads the applications config file contents (yaml) and marshals to a struct
 func loadConfig(configPath string) (*Config) {
+
 	c := new(Config)
 	data, err := util.ReadTextFromFile(configPath)
 	if err != nil {
@@ -224,6 +228,7 @@ func loadConfig(configPath string) (*Config) {
 
 //
 func performHourlyTasks() {
+
     exportDataForStringStringTotal(
         SQL_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH, "Process Create (Path, SHA256) By Path",
         EXPORT_TYPE_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH, PREFIX_EXPORT_PROCESS_CREATE_PATH_SHA256_GROUP_PATH_ORDER_PATH)

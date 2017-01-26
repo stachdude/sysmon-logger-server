@@ -2,6 +2,7 @@ package main
 
 import (
     "time"
+    "database/sql"
 )
 
 // ##### Types ###############################################################
@@ -74,11 +75,11 @@ type NetworkConnection struct {
     ProcessUser			string 	`db:"process_user"`
     Protocol			string 	`db:"protocol"`
     Initiated 			bool 	`db:"initiated"`
-    SourceIp 			string 	`db:"source_ip"`
+    SourceIp 			sql.NullString 	`db:"source_ip"`
     SourceHostName 		string 	`db:"source_host_name"`
     SourcePort 			int32 	`db:"source_port"`				// Matches values for postgres (integer) e.g. Range: -2147483648 through 2147483647.
     SourcePortName 		string 	`db:"source_port_name"`
-    DestinationIp		string 	`db:"destination_ip"`
+    DestinationIp		sql.NullString 	`db:"destination_ip"`
     DestinationHostName	string 	`db:"destination_host_name"`
     DestinationPort		int32 	`db:"destination_port"`			// Matches values for postgres (integer) e.g. Range: -2147483648 through 2147483647.
     DestinationPortName	string 	`db:"destination_port_name"`

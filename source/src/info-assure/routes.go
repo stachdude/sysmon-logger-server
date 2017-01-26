@@ -20,6 +20,7 @@ func receive (c *gin.Context) {
 
 // Receives the HTTP POST data from the clients
 func receiveData (c *gin.Context) {
+
 	// Get the URL values
 	host := c.Param("host")
 	domain := c.Param("domain")

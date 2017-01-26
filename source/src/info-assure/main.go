@@ -62,13 +62,13 @@ func main() {
     cronner.Start()
 
 	var r *gin.Engine
-	if config.Debug == false {
+	if config.Debug == true {
+		// DEBUG
+		r = gin.Default()
+	} else {
 		gin.SetMode(gin.ReleaseMode)
 		r = gin.New()
 		r.Use(gin.Recovery())
-	} else {
-		// DEBUG
-		r = gin.Default()
 	}
 
 	r.GET("/", index)
@@ -134,6 +134,7 @@ func createProcessors() {
 
 // Sets up the logging infrastructure e.g. Stdout and /var/log
 func initialiseLogging() {
+
 	// Setup the actual loggers
 	logger = logging.MustGetLogger(APP_NAME)
 

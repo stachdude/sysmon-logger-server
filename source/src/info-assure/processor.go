@@ -16,13 +16,9 @@ import (
 type Processor struct {
 	id 						int
 	config					*Config
-	regRes 					[][]string
-	parts					[]string
-	lines 					[]string
 	db 						*runner.DB
 	regexEventName			*regexp.Regexp
 	regexData				*regexp.Regexp
-	//regexFormattedMessage	*regexp.Regexp
 	regexUtcTime			*regexp.Regexp
 }
 
@@ -46,7 +42,6 @@ func NewProcessor(id int, config *Config, db *runner.DB) *Processor {
 
 	p.regexEventName, _ = regexp.Compile(`\(rule:\s(.*?)\)`)
 	p.regexData, _ = regexp.Compile(`<Data\sName='(.*?)'>(.*?)</Data>`)
-	//p.regexFormattedMessage, _ = regexp.Compile(`FormattedMessage="(?s)(.*?)"`)
 	p.regexUtcTime, _ = regexp.Compile(`<TimeCreated\sSystemTime='(.*?)'/>`)
 
 	return &p
@@ -56,7 +51,7 @@ func NewProcessor(id int, config *Config, db *runner.DB) *Processor {
 func (p Processor) Process(it ImportTask) {
 
 	// Split the data into each separate message using the special delimiter :-)
-	p.parts = strings.Split(it.Data, MESSAGE_DELIMITER)
+	parts := strings.Split(it.Data, MESSAGE_DELIMITER)
 
 	eventName := ""
     message := ""
@@ -64,16 +59,16 @@ func (p Processor) Process(it ImportTask) {
 	var e Event
 	var err error
 
-	for _, v := range p.parts {
+	for _, v := range parts {
 
 		// Extract the Event Name
-		p.regRes = p.regexEventName.FindAllStringSubmatch(v, -1)
-		if p.regRes == nil {
+		regexRes := p.regexEventName.FindAllStringSubmatch(v, -1)
+		if regexRes == nil {
 			logger.Errorf(`Cannot locate event name: %s`, v)
 			continue
 		}
 
-		eventName = strings.TrimSpace(p.regRes[0][1])
+		eventName = strings.TrimSpace(regexRes[0][1])
 		// Lowercase for better matching
 		eventName = strings.ToLower(eventName)
 
@@ -83,18 +78,21 @@ func (p Processor) Process(it ImportTask) {
 		e.Host = it.Host
 
 		// Extract the UTC Time from the event
-		p.regRes = p.regexUtcTime.FindAllStringSubmatch(v, -1)
-		if p.regRes != nil {
-			parsedTimestamp, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(p.regRes[0][1]))
+		regexRes = p.regexUtcTime.FindAllStringSubmatch(v, -1)
+		if regexRes != nil {
+			parsedTimestamp, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(regexRes[0][1]))
 			if err != nil {
-				logger.Error("Unable to parse event UTC Time: %v (%s)", err, p.regRes[0][1])
+				logger.Error("Unable to parse event UTC Time: %v (%s)", err, regexRes[0][1])
 				continue
 			} else {
 				e.UtcTime = parsedTimestamp
 			}
 		}
 
-		logger.Errorf("Event: %s", eventName)
+		if config.Debug == true {
+			logger.Infof("Domain: %s, Host: %s, Event: %s", it.Domain, it.Host, eventName)
+		}
+
 		switch eventName {
 		case "processcreate":
             messageHtml, message = p.parseProcessCreate(it, v)
@@ -154,18 +152,14 @@ func (p Processor) Process(it ImportTask) {
 			}
 		}
 	}
-
-	// This is probably unnecessary
-	p.parts = []string{}
-	p.regRes = [][]string{}
 }
 
 //
 func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
-		logger.Errorf(`Cannot locate data: %s`, data)
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf(`Cannot locate Data elements for Process Create: %s`, data)
 		return "", ""
 	}
 
@@ -174,7 +168,7 @@ func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, stri
 	pc.Host = it.Host
 
 	indexOf := 0
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -260,9 +254,9 @@ func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, stri
 //
 func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
-		logger.Errorf(`Cannot locate data: %s`, data)
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf(`Cannot locate Data elements for File Creation Time: %s`, data)
 		return "", ""
 	}
 
@@ -270,7 +264,7 @@ func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, s
 	fct.Domain = it.Domain
 	fct.Host = it.Host
 
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes{
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -347,9 +341,9 @@ func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, s
 //
 func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
-		logger.Errorf(`Cannot locate data: %s`, data)
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf(`Cannot locate Data elements for Network Connection: %s`, data)
 		return "", ""
 	}
 
@@ -357,7 +351,7 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 	nc.Domain = it.Domain
 	nc.Host = it.Host
 
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -372,7 +366,7 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 		case "utctime":
 			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
 			if err != nil {
-				logger.Error("Unable to parse Network Connection UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
+				logger.Errorf("Unable to parse Network Connection UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
 				continue
 			}
 
@@ -394,30 +388,30 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 		case "initiated":
 			nc.Initiated = goutil.ParseBool(dataRes[DATA_VALUE])
 
-		case "source_ip":
+		case "sourceip":
 			nc.SourceIp.Scan(dataRes[DATA_VALUE])
 
-		case "source_host_name":
+		case "sourcehostname":
 			nc.SourceHostName = dataRes[DATA_VALUE]
 
-		case "source_port":
+		case "sourceport":
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
 			nc.SourcePort = goutil.ConvertStringToInt32(dataRes[DATA_VALUE])
 
-		case "source_port_name":
+		case "sourceportname":
 			nc.SourcePortName = dataRes[DATA_VALUE]
 
-		case "destination_ip":
+		case "destinationip":
 			nc.DestinationIp.Scan(dataRes[DATA_VALUE])
 
-		case "destination_host_name":
+		case "destinationhostname":
 			nc.DestinationHostName = dataRes[DATA_VALUE]
 
-		case "destination_port":
+		case "destinationport":
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
 			nc.DestinationPort = goutil.ConvertStringToInt32(dataRes[DATA_VALUE])
 
-		case "destination_port_name":
+		case "destinationportname":
 			nc.DestinationPortName = dataRes[DATA_VALUE]
 		}
 	}
@@ -425,12 +419,12 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 	err := p.db.
 		InsertInto("network_connection").
 		Columns("domain", "host", "utc_time", "process_id", "image", "process_user", "protocol",
-		"initiated", "source_ip", "source_host_name", "source_port", "source_port_name", "destination_ip",
-		"destination_host_name", "destination_port", "destination_port_name").
+			"initiated", "source_ip", "source_host_name", "source_port", "source_port_name", "destination_ip",
+			"destination_host_name", "destination_port", "destination_port_name").
 		Values(nc.Domain, nc.Host, nc.UtcTime, nc.ProcessId, nc.Image,
-		nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
-		nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName,
-		nc.DestinationPort, nc.DestinationPortName).
+			nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
+			nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName,
+			nc.DestinationPort, nc.DestinationPortName).
 		QueryStruct(&nc)
 
 	if err != nil {
@@ -452,9 +446,9 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 //
 func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
-		logger.Errorf("Cannot locate data: %s", data)
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf("Cannot locate Data elements for Process Terminated: %s", data)
 		return "", ""
 	}
 
@@ -462,7 +456,7 @@ func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, 
 	pt.Domain = it.Domain
 	pt.Host = it.Host
 
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -512,9 +506,9 @@ func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, 
 //
 func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
-		logger.Errorf("Cannot locate data: %s", data)
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf("Cannot locate Data elements for Driver Loaded: %s", data)
 		return "", ""
 	}
 
@@ -523,7 +517,7 @@ func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, strin
 	dl.Host = it.Host
 
 	indexOf := 0
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -588,8 +582,8 @@ func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, strin
 //
 func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
 		logger.Errorf("Cannot locate data: %s", data)
 		return "", ""
 	}
@@ -599,7 +593,7 @@ func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string
 	il.Host = it.Host
 
 	indexOf := 0
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -670,8 +664,8 @@ func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string
 //
 func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
 		logger.Errorf("Cannot locate data: %s", data)
 		return "", ""
 	}
@@ -680,7 +674,7 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string,
 	crt.Domain = it.Domain
 	crt.Host = it.Host
 
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes{
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value
@@ -753,8 +747,8 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string,
 //
 func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, string) {
 
-	p.regRes = p.regexData.FindAllStringSubmatch(data, -1)
-	if p.regRes == nil {
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
 		logger.Errorf("Cannot locate data: %s", data)
 		return "", ""
 	}
@@ -763,7 +757,7 @@ func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, stri
 	ra.Domain = it.Domain
 	ra.Host = it.Host
 
-	for _, dataRes := range p.regRes {
+	for _, dataRes := range regexRes {
 
 		// We are only interested if the array has 3 items
 		// e.g. main match, data name and then data value

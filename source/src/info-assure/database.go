@@ -9,10 +9,11 @@ import (
 
 // Base fields that all database tables support
 type Base struct {
-	Id      int64     `db:"id"`
-	Domain  string    `db:"domain"`
-	Host    string    `db:"host"`
-	UtcTime time.Time `db:"utc_time"`
+	Id           int64     `db:"id"`
+	Domain       string    `db:"domain"`
+	Host         string    `db:"host"`
+	EventLogTime time.Time `db:"event_log_time"`
+	UtcTime      time.Time `db:"utc_time"`
 }
 
 // Represents an "event" record

@@ -58,6 +58,7 @@ func (p Processor) Process(it ImportTask) {
 	messageHtml := ""
 	var e Event
 	var err error
+	var parsedTimestamp time.Time
 
 	for _, v := range parts {
 
@@ -77,15 +78,15 @@ func (p Processor) Process(it ImportTask) {
 		e.Domain = it.Domain
 		e.Host = it.Host
 
-		// Extract the UTC Time from the event
+		// Extract the Event Log timestamp
 		regexRes = p.regexUtcTime.FindAllStringSubmatch(v, -1)
 		if regexRes != nil {
-			parsedTimestamp, err := time.Parse(time.RFC3339Nano, strings.TrimSpace(regexRes[0][1]))
+			parsedTimestamp, err = time.Parse(time.RFC3339Nano, strings.TrimSpace(regexRes[0][1]))
 			if err != nil {
-				logger.Error("Unable to parse event UTC Time: %v (%s)", err, regexRes[0][1])
+				logger.Error("Unable to parse Event Log Time: %v (%s)", err, regexRes[0][1])
 				continue
 			} else {
-				e.UtcTime = parsedTimestamp
+				e.EventLogTime = parsedTimestamp
 			}
 		}
 
@@ -95,47 +96,47 @@ func (p Processor) Process(it ImportTask) {
 
 		switch eventName {
 		case "processcreate":
-			messageHtml, message = p.parseProcessCreate(it, v)
+			messageHtml, message = p.parseProcessCreate(it, parsedTimestamp, v)
 			e.Type = "Process Create"
 
 		case "filecreatetime":
-			messageHtml, message = p.parseFileCreationTime(it, v)
+			messageHtml, message = p.parseFileCreationTime(it, parsedTimestamp, v)
 			e.Type = "File Creation Time"
 
 		case "networkconnect":
-			messageHtml, message = p.parseNetworkConnection(it, v)
+			messageHtml, message = p.parseNetworkConnection(it, parsedTimestamp, v)
 			e.Type = "Network Connection"
 
 		case "processterminate":
-			messageHtml, message = p.parseProcessTerminated(it, v)
+			messageHtml, message = p.parseProcessTerminated(it, parsedTimestamp, v)
 			e.Type = "Process Terminated"
 
 		case "driverload":
-			messageHtml, message = p.parseDriverLoaded(it, v)
+			messageHtml, message = p.parseDriverLoaded(it, parsedTimestamp, v)
 			e.Type = "Driver Loaded"
 
 		case "imageload":
-			messageHtml, message = p.parseImageLoaded(it, v)
+			messageHtml, message = p.parseImageLoaded(it, parsedTimestamp, v)
 			e.Type = "Image Loaded"
 
 		case "createremotethread":
-			messageHtml, message = p.parseCreateRemoteThread(it, v)
+			messageHtml, message = p.parseCreateRemoteThread(it, parsedTimestamp, v)
 			e.Type = "Create Remote Thread"
 
 		case "rawaccessread":
-			messageHtml, message = p.parseRawAccessRead(it, v)
+			messageHtml, message = p.parseRawAccessRead(it, parsedTimestamp, v)
 			e.Type = "Raw Access Read"
 
 		case "processaccess":
-			messageHtml, message = p.parseProcessAccessed(it, v)
+			messageHtml, message = p.parseProcessAccessed(it, parsedTimestamp, v)
 			e.Type = "Process Access"
 
 		case "filecreate":
-			messageHtml, message = p.parseFileCreated(it, v)
+			messageHtml, message = p.parseFileCreated(it, parsedTimestamp, v)
 			e.Type = "File Create"
 
 		case "registryevent":
-			messageHtml, message = p.parseRegistryEvent(it, v)
+			messageHtml, message = p.parseRegistryEvent(it, parsedTimestamp, v)
 			e.Type = "Registry"
 
 		default:
@@ -165,7 +166,7 @@ func (p Processor) Process(it ImportTask) {
 }
 
 //
-func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, string) {
+func (p *Processor) parseProcessCreate(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -176,6 +177,7 @@ func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, stri
 	pc := new(ProcessCreate)
 	pc.Domain = it.Domain
 	pc.Host = it.Host
+	pc.EventLogTime = eventLogTime
 
 	indexOf := 0
 	for _, dataRes := range regexRes {
@@ -239,9 +241,9 @@ func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, stri
 
 	err := p.db.
 		InsertInto("process_create").
-		Columns("domain", "host", "utc_time", "process_id", "image", "command_line", "current_directory",
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "command_line", "current_directory",
 			"md5", "sha256", "parent_process_id", "parent_image", "parent_command_line", "process_user").
-		Values(pc.Domain, pc.Host, pc.UtcTime, pc.ProcessId, pc.Image,
+		Values(pc.Domain, pc.Host, pc.EventLogTime, pc.UtcTime, pc.ProcessId, pc.Image,
 			pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
 			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser).
 		QueryStruct(&pc)
@@ -262,7 +264,7 @@ func (p *Processor) parseProcessCreate(it ImportTask, data string) (string, stri
 }
 
 //
-func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, string) {
+func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -273,6 +275,7 @@ func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, s
 	fct := new(FileCreationTime)
 	fct.Domain = it.Domain
 	fct.Host = it.Host
+	fct.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -327,9 +330,9 @@ func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, s
 
 	err := p.db.
 		InsertInto("file_creation_time").
-		Columns("domain", "host", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time",
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time",
 			"previous_creation_utc_time").
-		Values(fct.Domain, fct.Host, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
+		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
 			fct.CreationUtcTime, fct.PreviousCreationUtcTime).
 		QueryStruct(&fct)
 
@@ -349,7 +352,7 @@ func (p *Processor) parseFileCreationTime(it ImportTask, data string) (string, s
 }
 
 //
-func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, string) {
+func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -360,6 +363,7 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 	nc := new(NetworkConnection)
 	nc.Domain = it.Domain
 	nc.Host = it.Host
+	nc.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -428,10 +432,10 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 
 	err := p.db.
 		InsertInto("network_connection").
-		Columns("domain", "host", "utc_time", "process_id", "image", "process_user", "protocol",
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "process_user", "protocol",
 			"initiated", "source_ip", "source_host_name", "source_port", "source_port_name", "destination_ip",
 			"destination_host_name", "destination_port", "destination_port_name").
-		Values(nc.Domain, nc.Host, nc.UtcTime, nc.ProcessId, nc.Image,
+		Values(nc.Domain, nc.Host, nc.EventLogTime, nc.UtcTime, nc.ProcessId, nc.Image,
 			nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
 			nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName,
 			nc.DestinationPort, nc.DestinationPortName).
@@ -459,7 +463,7 @@ func (p *Processor) parseNetworkConnection(it ImportTask, data string) (string, 
 }
 
 //
-func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, string) {
+func (p *Processor) parseProcessTerminated(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -470,6 +474,7 @@ func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, 
 	pt := new(ProcessTerminate)
 	pt.Domain = it.Domain
 	pt.Host = it.Host
+	pt.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -503,8 +508,8 @@ func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, 
 
 	err := p.db.
 		InsertInto("process_terminated").
-		Columns("domain", "host", "utc_time", "process_id", "image").
-		Values(pt.Domain, pt.Host, pt.UtcTime, pt.ProcessId, pt.Image).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image").
+		Values(pt.Domain, pt.Host, pt.EventLogTime, pt.UtcTime, pt.ProcessId, pt.Image).
 		QueryStruct(&pt)
 
 	if err != nil {
@@ -519,7 +524,7 @@ func (p *Processor) parseProcessTerminated(it ImportTask, data string) (string, 
 }
 
 //
-func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, string) {
+func (p *Processor) parseDriverLoaded(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -530,6 +535,7 @@ func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, strin
 	dl := new(DriverLoaded)
 	dl.Domain = it.Domain
 	dl.Host = it.Host
+	dl.EventLogTime = eventLogTime
 
 	indexOf := 0
 	for _, dataRes := range regexRes {
@@ -577,8 +583,8 @@ func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, strin
 
 	err := p.db.
 		InsertInto("driver_loaded").
-		Columns("domain", "host", "utc_time", "image_loaded", "md5", "sha256", "signed", "signature").
-		Values(dl.Domain, dl.Host, dl.UtcTime, dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature).
+		Columns("domain", "host", "event_log_time", "utc_time", "image_loaded", "md5", "sha256", "signed", "signature").
+		Values(dl.Domain, dl.Host, dl.EventLogTime, dl.UtcTime, dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature).
 		QueryStruct(&dl)
 
 	if err != nil {
@@ -595,7 +601,7 @@ func (p *Processor) parseDriverLoaded(it ImportTask, data string) (string, strin
 }
 
 //
-func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string) {
+func (p *Processor) parseImageLoaded(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -606,6 +612,7 @@ func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string
 	il := new(ImageLoaded)
 	il.Domain = it.Domain
 	il.Host = it.Host
+	il.EventLogTime = eventLogTime
 
 	indexOf := 0
 	for _, dataRes := range regexRes {
@@ -659,8 +666,8 @@ func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string
 
 	err := p.db.
 		InsertInto("image_loaded").
-		Columns("domain", "host", "utc_time", "process_id", "image", "image_loaded", "md5", "sha256", "signed", "signature").
-		Values(il.Domain, il.Host, il.UtcTime, il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "image_loaded", "md5", "sha256", "signed", "signature").
+		Values(il.Domain, il.Host, il.EventLogTime, il.UtcTime, il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature).
 		QueryStruct(&il)
 
 	if err != nil {
@@ -677,7 +684,7 @@ func (p *Processor) parseImageLoaded(it ImportTask, data string) (string, string
 }
 
 //
-func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string, string) {
+func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -688,6 +695,7 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string,
 	crt := new(CreateRemoteThread)
 	crt.Domain = it.Domain
 	crt.Host = it.Host
+	crt.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -740,9 +748,9 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string,
 
 	err := p.db.
 		InsertInto("image_loaded").
-		Columns("domain", "host", "utc_time", "source_process_id", "source_image", "target_process_id",
+		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image", "target_process_id",
 			"target_image", "new_thread_id", "start_address", "start_module", "start_function").
-		Values(crt.Domain, crt.Host, crt.UtcTime, crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId,
+		Values(crt.Domain, crt.Host, crt.EventLogTime, crt.UtcTime, crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId,
 			crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction).
 		QueryStruct(&crt)
 
@@ -760,7 +768,7 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, data string) (string,
 }
 
 //
-func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, string) {
+func (p *Processor) parseRawAccessRead(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -771,6 +779,7 @@ func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, stri
 	ra := new(RawAccess)
 	ra.Domain = it.Domain
 	ra.Host = it.Host
+	ra.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -808,8 +817,8 @@ func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, stri
 
 	err := p.db.
 		InsertInto("raw_access").
-		Columns("domain", "host", "utc_time", "process_id", "image", "device").
-		Values(ra.Domain, ra.Host, ra.UtcTime, ra.ProcessId, ra.Image, ra.Device).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "device").
+		Values(ra.Domain, ra.Host, ra.EventLogTime, ra.UtcTime, ra.ProcessId, ra.Image, ra.Device).
 		QueryStruct(&ra)
 
 	if err != nil {
@@ -826,7 +835,7 @@ func (p *Processor) parseRawAccessRead(it ImportTask, data string) (string, stri
 }
 
 //
-func (p *Processor) parseProcessAccessed(it ImportTask, data string) (string, string) {
+func (p *Processor) parseProcessAccessed(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -837,6 +846,7 @@ func (p *Processor) parseProcessAccessed(it ImportTask, data string) (string, st
 	pa := new(ProcessAccesssed)
 	pa.Domain = it.Domain
 	pa.Host = it.Host
+	pa.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -882,9 +892,9 @@ func (p *Processor) parseProcessAccessed(it ImportTask, data string) (string, st
 
 	err := p.db.
 		InsertInto("process_accessed").
-		Columns("domain", "host", "utc_time", "source_process_id", "source_thread_id", "source_image",
+		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_thread_id", "source_image",
 		"target_process_id", "target_image", "granted_access", "call_trace").
-		Values(pa.Domain, pa.Host, pa.UtcTime, pa.SourceProcessId, pa.SourceThreadId, pa.SourceImage,
+		Values(pa.Domain, pa.Host, pa.EventLogTime, pa.UtcTime, pa.SourceProcessId, pa.SourceThreadId, pa.SourceImage,
 		pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace).
 		QueryStruct(&pa)
 
@@ -904,7 +914,7 @@ func (p *Processor) parseProcessAccessed(it ImportTask, data string) (string, st
 }
 
 //
-func (p *Processor) parseFileCreated(it ImportTask, data string) (string, string) {
+func (p *Processor) parseFileCreated(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -915,6 +925,7 @@ func (p *Processor) parseFileCreated(it ImportTask, data string) (string, string
 	fct := new(FileCreated)
 	fct.Domain = it.Domain
 	fct.Host = it.Host
+	fct.EventLogTime = eventLogTime
 
 	for _, dataRes := range regexRes {
 
@@ -960,8 +971,8 @@ func (p *Processor) parseFileCreated(it ImportTask, data string) (string, string
 
 	err := p.db.
 		InsertInto("file_creation_time").
-		Columns("domain", "host", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time").
-		Values(fct.Domain, fct.Host, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time").
+		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
 		fct.CreationUtcTime).
 		QueryStruct(&fct)
 
@@ -980,7 +991,7 @@ func (p *Processor) parseFileCreated(it ImportTask, data string) (string, string
 }
 
 //
-func (p *Processor) parseRegistryEvent(it ImportTask, data string) (string, string) {
+func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
@@ -1045,6 +1056,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, data string) (string, stri
 		rad := new(RegistryAddDelete)
 		rad.Domain = it.Domain
 		rad.Host = it.Host
+		rad.EventLogTime = eventLogTime
 		rad.UtcTime = utcTime
 		rad.ProcessId = processId
 		rad.Image = image
@@ -1057,6 +1069,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, data string) (string, stri
 		rr := new(RegistryRenamed)
 		rr.Domain = it.Domain
 		rr.Host = it.Host
+		rr.EventLogTime = eventLogTime
 		rr.UtcTime = utcTime
 		rr.ProcessId = processId
 		rr.Image = image
@@ -1070,6 +1083,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, data string) (string, stri
 		rs := new(RegistrySet)
 		rs.Domain = it.Domain
 		rs.Host = it.Host
+		rs.EventLogTime = eventLogTime
 		rs.UtcTime = utcTime
 		rs.ProcessId = processId
 		rs.Image = image
@@ -1090,8 +1104,8 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 
 	err := p.db.
 		InsertInto("registry_add_delete").
-		Columns("domain", "host", "utc_time", "process_id", "image", "event_type", "target_object").
-		Values(rad.Domain, rad.Host, rad.UtcTime, rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object").
+		Values(rad.Domain, rad.Host, rad.EventLogTime, rad.UtcTime, rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject).
 		QueryStruct(&rad)
 
 	if err != nil {
@@ -1113,8 +1127,8 @@ func (p *Processor) insertRegistryRenameRecord(rr *RegistryRenamed) (string, str
 
 	err := p.db.
 		InsertInto("registry_rename").
-		Columns("domain", "host", "utc_time", "process_id", "image", "event_type", "target_object", "new_name").
-		Values(rr.Domain, rr.Host, rr.UtcTime, rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "new_name").
+		Values(rr.Domain, rr.Host, rr.EventLogTime, rr.UtcTime, rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName).
 		QueryStruct(&rr)
 
 	if err != nil {
@@ -1137,8 +1151,8 @@ func (p *Processor) insertRegistrySetValueRecord(rs *RegistrySet) (string, strin
 
 	err := p.db.
 		InsertInto("registry_set").
-		Columns("domain", "host", "utc_time", "process_id", "image", "event_type", "target_object", "details").
-		Values(rs.Domain, rs.Host, rs.UtcTime, rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "details").
+		Values(rs.Domain, rs.Host, rs.EventLogTime, rs.UtcTime, rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details).
 		QueryStruct(&rs)
 
 	if err != nil {

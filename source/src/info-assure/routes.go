@@ -1,25 +1,25 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"compress/gzip"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
-	"fmt"
 )
 
 // Provides a HTTP response to a GET request for https://x.x.x.x:XX/
-func index (c *gin.Context) {
+func index(c *gin.Context) {
 	c.String(http.StatusOK, fmt.Sprintf("\n%s (%s) %s\n\n", APP_TITLE, APP_NAME, APP_VERSION))
 }
 
 // This just provides a response to a GET request for https://x.x.x.x:XX/domain/host/user
-func receive (c *gin.Context) {
+func receive(c *gin.Context) {
 	c.String(http.StatusOK, fmt.Sprintf("\n%s (%s) %s\n\n", APP_TITLE, APP_NAME, APP_VERSION))
 }
 
 // Receives the HTTP POST data from the clients
-func receiveData (c *gin.Context) {
+func receiveData(c *gin.Context) {
 
 	// Get the URL values
 	host := c.Param("host")

@@ -1052,7 +1052,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, da
 	eventType = strings.ToLower(eventType)
 
 	switch (eventType) {
-	case "createkey", "deletekey", "CreateValue", "DeleteValue":
+	case "createkey", "deletekey", "createvalue", "deletevalue":
 		rad := new(RegistryAddDelete)
 		rad.Domain = it.Domain
 		rad.Host = it.Host

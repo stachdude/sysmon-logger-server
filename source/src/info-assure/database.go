@@ -124,7 +124,7 @@ type ProcessAccess struct {
 	SourceImage 	string `db:"source_image"`
 	TargetProcessId int64  `db:"target_process_id"`
 	TargetImage   	string `db:"target_image"`
-	GrantedAccess   int    `db:"granted_access"`
+	GrantedAccess   string    `db:"granted_access"`
 	CallTrace  		string `db:"call_trace"`
 }
 
@@ -156,8 +156,8 @@ type RegistrySet struct {
 	Details 		string `db:"details"`
 }
 
-// Represents an "registry_renamed" record
-type RegistryRenamed struct {
+// Represents an "registry_rename" record
+type RegistryRename struct {
 	Base
 	ProcessId       int64  `db:"process_id"`
 	Image           string `db:"image"`

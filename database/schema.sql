@@ -5,7 +5,7 @@
 -- Dumped from database version 9.5.5
 -- Dumped by pg_dump version 9.5.5
 
--- Started on 2017-02-01 06:46:10 GMT
+-- Started on 2017-02-01 07:55:11 GMT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -382,8 +382,8 @@ CREATE TABLE process_access (
     source_image text,
     target_process_id bigint,
     target_image text,
-    granted_access integer,
-    call_trace text
+    call_trace text,
+    granted_access text
 );
 
 
@@ -574,10 +574,10 @@ ALTER SEQUENCE registry_add_delete_id_seq OWNED BY registry_add_delete.id;
 
 --
 -- TOC entry 204 (class 1259 OID 32422)
--- Name: registry_renamed; Type: TABLE; Schema: public; Owner: -
+-- Name: registry_rename; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE registry_renamed (
+CREATE TABLE registry_rename (
     id bigint NOT NULL,
     domain text,
     host text,
@@ -593,10 +593,10 @@ CREATE TABLE registry_renamed (
 
 --
 -- TOC entry 203 (class 1259 OID 32420)
--- Name: registry_renamed_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: registry_rename_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE registry_renamed_id_seq
+CREATE SEQUENCE registry_rename_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -607,10 +607,10 @@ CREATE SEQUENCE registry_renamed_id_seq
 --
 -- TOC entry 2297 (class 0 OID 0)
 -- Dependencies: 203
--- Name: registry_renamed_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: registry_rename_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE registry_renamed_id_seq OWNED BY registry_renamed.id;
+ALTER SEQUENCE registry_rename_id_seq OWNED BY registry_rename.id;
 
 
 --
@@ -763,7 +763,7 @@ ALTER TABLE ONLY registry_add_delete ALTER COLUMN id SET DEFAULT nextval('regist
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY registry_renamed ALTER COLUMN id SET DEFAULT nextval('registry_renamed_id_seq'::regclass);
+ALTER TABLE ONLY registry_rename ALTER COLUMN id SET DEFAULT nextval('registry_rename_id_seq'::regclass);
 
 
 --
@@ -905,7 +905,7 @@ ALTER TABLE ONLY registry_add_delete
 -- Name: registry_renamed_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY registry_renamed
+ALTER TABLE ONLY registry_rename
     ADD CONSTRAINT registry_renamed_pkey PRIMARY KEY (id);
 
 
@@ -918,7 +918,7 @@ ALTER TABLE ONLY registry_set
     ADD CONSTRAINT registry_set_pkey PRIMARY KEY (id);
 
 
--- Completed on 2017-02-01 06:46:10 GMT
+-- Completed on 2017-02-01 07:55:11 GMT
 
 --
 -- PostgreSQL database dump complete

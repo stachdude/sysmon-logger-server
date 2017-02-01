@@ -879,8 +879,11 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 		case "targetprocessid":
 			pa.TargetProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
+		case "targetimage":
+			pa.TargetImage = dataRes[DATA_VALUE]
+
 		case "grantedaccess":
-			pa.GrantedAccess = goutil.ConvertStringToInt(dataRes[DATA_VALUE])
+			pa.GrantedAccess = dataRes[DATA_VALUE]
 
 		case "calltrace":
 			pa.CallTrace = dataRes[DATA_VALUE]
@@ -1063,7 +1066,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, da
 		return p.insertRegistryAddDeleteRecord(rad)
 
 	case "renamekey", "renamevalue":
-		rr := new(RegistryRenamed)
+		rr := new(RegistryRename)
 		rr.Domain = it.Domain
 		rr.Host = it.Host
 		rr.EventLogTime = eventLogTime
@@ -1120,7 +1123,7 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 }
 
 //
-func (p *Processor) insertRegistryRenameRecord(rr *RegistryRenamed) (string, string) {
+func (p *Processor) insertRegistryRenameRecord(rr *RegistryRename) (string, string) {
 
 	err := p.db.
 		InsertInto("registry_rename").

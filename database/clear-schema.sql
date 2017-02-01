@@ -37,8 +37,8 @@ ALTER SEQUENCE raw_access_read_id_seq RESTART WITH 1;
 TRUNCATE TABLE registry_add_delete;
 ALTER SEQUENCE registry_add_delete_id_seq RESTART WITH 1;
 
-TRUNCATE TABLE registry_renamed;
-ALTER SEQUENCE registry_renamed_id_seq RESTART WITH 1;
+TRUNCATE TABLE registry_rename;
+ALTER SEQUENCE registry_rename_id_seq RESTART WITH 1;
 
 TRUNCATE TABLE registry_set;
 ALTER SEQUENCE registry_set_id_seq RESTART WITH 1;

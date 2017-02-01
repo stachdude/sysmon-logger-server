@@ -139,6 +139,10 @@ func (p Processor) Process(it ImportTask) {
 			messageHtml, message = p.parseRegistryEvent(it, parsedTimestamp, v)
 			e.Type = "Registry"
 
+		case "filecreatestreamhash":
+			messageHtml, message = p.parseFileStream(it, parsedTimestamp, v)
+			e.Type = "File Stream"
+
 		default:
 			logger.Errorf("Unsupported SysMon event: %s", eventName)
 			logger.Errorf(`Event Data: %s`, v)
@@ -343,7 +347,9 @@ func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time,
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br><strong>Previous Creation Time (UTC):</strong> %s`,
+	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+		<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br>
+		<strong>Previous Creation Time (UTC):</strong> %s`,
 			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
 			fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006")),
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s Previous Creation Time (UTC): %s`,
@@ -453,13 +459,13 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 	<strong>Source IP:</strong> %s<br><strong>Source Host Name: </strong>%s<br><strong>Source Port:</strong> %d<br>
 	<strong>Source Port Name: </strong>%s<br><strong>Destination IP:</strong> %s<br><strong>Destination Host Name:</strong> %s<br><strong>Destination Port:</strong> %d
 	<br><strong>Destination Port Name:</strong> %s`,
-			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
-			nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName),
+			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
+			nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName),
 		fmt.Sprintf(`Process ID: %d Image: %s Process User: %s Protocol: %s Initiated: %t Source IP: %s
 		Source Host Name: %s Source Port: %d Source Port Name: %s Destination IP: %s Destination Host Name: %s
 		Destination Port: %d Destination Port Name: %s`,
-			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
-			nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName)
+			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
+			nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName)
 }
 
 //
@@ -893,9 +899,9 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 	err := p.db.
 		InsertInto("process_access").
 		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image",
-		"target_process_id", "target_image", "granted_access", "call_trace").
+			"target_process_id", "target_image", "granted_access", "call_trace").
 		Values(pa.Domain, pa.Host, pa.EventLogTime, pa.UtcTime, pa.SourceProcessId, pa.SourceImage,
-		pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace).
+			pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace).
 		QueryStruct(&pa)
 
 	if err != nil {
@@ -907,8 +913,8 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 
 	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br>
 	<strong>Source Image:</strong> %s<strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br>
-	<strong>Granted Access:</strong> %d<br><strong>Call Trace:</strong> %s<br>`,
-		pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
+	<strong>Granted Access:</strong> %s<br><strong>Call Trace:</strong> %s<br>`,
+			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
 		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s`,
 			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage)
 }
@@ -973,7 +979,7 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 		InsertInto("file_create").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time").
 		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
-		fct.CreationUtcTime).
+			fct.CreationUtcTime).
 		QueryStruct(&fct)
 
 	if err != nil {
@@ -985,7 +991,7 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
 	<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br><strong>`,
-		fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006")),
+			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006")),
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s`,
 			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"))
 }
@@ -1051,7 +1057,7 @@ func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, da
 
 	eventType = strings.ToLower(eventType)
 
-	switch (eventType) {
+	switch eventType {
 	case "createkey", "deletekey", "createvalue", "deletevalue":
 		rad := new(RegistryAddDelete)
 		rad.Domain = it.Domain
@@ -1117,7 +1123,7 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
 			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s`,
-		rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject),
+			rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject),
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s`,
 			rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject)
 }
@@ -1141,7 +1147,7 @@ func (p *Processor) insertRegistryRenameRecord(rr *RegistryRename) (string, stri
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
 			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
 			<strong>New Name:</strong> %s`,
-		rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName),
+			rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName),
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s New Name: %s`,
 			rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName)
 }
@@ -1165,7 +1171,98 @@ func (p *Processor) insertRegistrySetValueRecord(rs *RegistrySet) (string, strin
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
 			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
 			<strong>Details:</strong> %s`,
-		rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details),
+			rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details),
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s Details: %s`,
 			rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details)
+}
+
+//
+func (p *Processor) parseFileStream(it ImportTask, eventLogTime time.Time, data string) (string, string) {
+
+	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
+	if regexRes == nil {
+		logger.Errorf(`Cannot locate Data elements for File Stream: %s`, data)
+		return "", ""
+	}
+
+	fs := new(FileStream)
+	fs.Domain = it.Domain
+	fs.Host = it.Host
+	fs.EventLogTime = eventLogTime
+
+	indexOf := 0
+	for _, dataRes := range regexRes {
+
+		// We are only interested if the array has 3 items
+		// e.g. main match, data name and then data value
+		if len(dataRes) != 3 {
+			continue
+		}
+
+		// Lower for better matching
+		dataRes[DATA_NAME] = strings.ToLower(dataRes[DATA_NAME])
+
+		switch dataRes[DATA_NAME] {
+		case "utctime":
+			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
+			if err != nil {
+				logger.Error("Unable to parse File Stream UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
+				continue
+			}
+
+			fs.UtcTime = parsedTimestamp
+
+		case "processid":
+			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
+			fs.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
+
+		case "image":
+			fs.Image = dataRes[DATA_VALUE]
+
+		case "targetfilename":
+			fs.TargetFileName = dataRes[DATA_VALUE]
+
+		case "creationutctime":
+			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
+			if err != nil {
+				logger.Error("Unable to parse File Stream Creation UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
+				continue
+			}
+
+			fs.CreationUtcTime = parsedTimestamp
+
+		case "hash":
+			indexOf = strings.Index(dataRes[DATA_VALUE], "MD5=")
+			if indexOf != -1 {
+				fs.Md5 = dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32]
+			}
+
+			indexOf = strings.Index(dataRes[DATA_VALUE], "SHA256=")
+			if indexOf != -1 {
+				fs.Sha256 = dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64]
+			}
+		}
+	}
+
+	err := p.db.
+		InsertInto("file_stream").
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image",
+			"target_file_name", "creation_utc_time", "md5", "sha256").
+		Values(fs.Domain, fs.Host, fs.EventLogTime, fs.UtcTime, fs.ProcessId, fs.Image,
+			fs.TargetFileName, fs.CreationUtcTime, fs.Md5, fs.Sha256).
+		QueryStruct(&fs)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") == false {
+			logger.Errorf("Error inserting File Stream record: %v", err)
+			return "", ""
+		}
+	}
+
+	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+		<strong>Target File Name:</strong> %s<br><strong>Creation UTC Time:</strong> %s<br>
+		<strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s`,
+			fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256),
+		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation UTC Time: %s MD5: %s SHA256: %s`,
+			fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256)
 }

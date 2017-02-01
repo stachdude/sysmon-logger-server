@@ -166,6 +166,17 @@ type RegistryRename struct {
 	NewName 		string `db:"new_name"`
 }
 
+// Represents an "file_stream" record
+type FileStream struct {
+	Base
+	ProcessId       int64     `db:"process_id"`
+	Image           string    `db:"image"`
+	TargetFileName  string 	  `db:"target_file_name"`
+	CreationUtcTime time.Time `db:"creation_utc_time"`
+	Md5             string    `db:"md5"`
+	Sha256          string    `db:"sha256"`
+}
+
 // Represents an "export" record
 type Export struct {
 	Id       int64     `db:"id"`

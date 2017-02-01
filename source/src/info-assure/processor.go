@@ -91,7 +91,7 @@ func (p Processor) Process(it ImportTask) {
 		}
 
 		if config.Debug == true {
-			logger.Infof("Domain: %s, Host: %s, Event: %s", it.Domain, it.Host, eventName)
+			//logger.Infof("Domain: %s, Host: %s, Event: %s", it.Domain, it.Host, eventName)
 		}
 
 		switch eventName {
@@ -108,7 +108,7 @@ func (p Processor) Process(it ImportTask) {
 			e.Type = "Network Connection"
 
 		case "processterminate":
-			messageHtml, message = p.parseProcessTerminated(it, parsedTimestamp, v)
+			messageHtml, message = p.parseProcessTerminate(it, parsedTimestamp, v)
 			e.Type = "Process Terminated"
 
 		case "driverload":
@@ -128,11 +128,11 @@ func (p Processor) Process(it ImportTask) {
 			e.Type = "Raw Access Read"
 
 		case "processaccess":
-			messageHtml, message = p.parseProcessAccessed(it, parsedTimestamp, v)
+			messageHtml, message = p.parseProcessAccess(it, parsedTimestamp, v)
 			e.Type = "Process Access"
 
 		case "filecreate":
-			messageHtml, message = p.parseFileCreated(it, parsedTimestamp, v)
+			messageHtml, message = p.parseFileCreate(it, parsedTimestamp, v)
 			e.Type = "File Create"
 
 		case "registryevent":
@@ -463,11 +463,11 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 }
 
 //
-func (p *Processor) parseProcessTerminated(it ImportTask, eventLogTime time.Time, data string) (string, string) {
+func (p *Processor) parseProcessTerminate(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
-		logger.Errorf("Cannot locate Data elements for Process Terminated: %s", data)
+		logger.Errorf("Cannot locate Data elements for Process Terminate: %s", data)
 		return "", ""
 	}
 
@@ -491,7 +491,7 @@ func (p *Processor) parseProcessTerminated(it ImportTask, eventLogTime time.Time
 		case "utctime":
 			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
 			if err != nil {
-				logger.Error("Unable to parse Process Terminated UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
+				logger.Error("Unable to parse Process Terminate UTC Time: %v (%s)", err, dataRes[DATA_VALUE])
 				continue
 			}
 
@@ -507,14 +507,14 @@ func (p *Processor) parseProcessTerminated(it ImportTask, eventLogTime time.Time
 	}
 
 	err := p.db.
-		InsertInto("process_terminated").
+		InsertInto("process_terminate").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image").
 		Values(pt.Domain, pt.Host, pt.EventLogTime, pt.UtcTime, pt.ProcessId, pt.Image).
 		QueryStruct(&pt)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") == false {
-			logger.Errorf("Error inserting Process Terminated record: %v", err)
+			logger.Errorf("Error inserting Process Terminate record: %v", err)
 			return "", ""
 		}
 	}
@@ -747,7 +747,7 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Tim
 	}
 
 	err := p.db.
-		InsertInto("image_loaded").
+		InsertInto("create_remote_thread").
 		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image", "target_process_id",
 			"target_image", "new_thread_id", "start_address", "start_module", "start_function").
 		Values(crt.Domain, crt.Host, crt.EventLogTime, crt.UtcTime, crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId,
@@ -835,15 +835,15 @@ func (p *Processor) parseRawAccessRead(it ImportTask, eventLogTime time.Time, da
 }
 
 //
-func (p *Processor) parseProcessAccessed(it ImportTask, eventLogTime time.Time, data string) (string, string) {
+func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
-		logger.Errorf("Cannot locate Data elements for Process Accessed: %s", data)
+		logger.Errorf("Cannot locate Data elements for Process Access: %s", data)
 		return "", ""
 	}
 
-	pa := new(ProcessAccesssed)
+	pa := new(ProcessAccess)
 	pa.Domain = it.Domain
 	pa.Host = it.Host
 	pa.EventLogTime = eventLogTime
@@ -873,9 +873,6 @@ func (p *Processor) parseProcessAccessed(it ImportTask, eventLogTime time.Time, 
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
 			pa.SourceProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
-		case "sourcethreadid":
-			pa.SourceThreadId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
-
 		case "sourceimage":
 			pa.SourceImage = dataRes[DATA_VALUE]
 
@@ -891,38 +888,38 @@ func (p *Processor) parseProcessAccessed(it ImportTask, eventLogTime time.Time, 
 	}
 
 	err := p.db.
-		InsertInto("process_accessed").
-		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_thread_id", "source_image",
+		InsertInto("process_access").
+		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image",
 		"target_process_id", "target_image", "granted_access", "call_trace").
-		Values(pa.Domain, pa.Host, pa.EventLogTime, pa.UtcTime, pa.SourceProcessId, pa.SourceThreadId, pa.SourceImage,
+		Values(pa.Domain, pa.Host, pa.EventLogTime, pa.UtcTime, pa.SourceProcessId, pa.SourceImage,
 		pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace).
 		QueryStruct(&pa)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") == false {
-			logger.Errorf("Error inserting Process Accessed record: %v", err)
+			logger.Errorf("Error inserting Process Access record: %v", err)
 			return "", ""
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br><strong>Source Thread ID:</strong> %d<br>
+	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br>
 	<strong>Source Image:</strong> %s<strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br>
 	<strong>Granted Access:</strong> %d<br><strong>Call Trace:</strong> %s<br>`,
-		pa.SourceProcessId, pa.SourceThreadId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
+		pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
 		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s`,
 			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage)
 }
 
 //
-func (p *Processor) parseFileCreated(it ImportTask, eventLogTime time.Time, data string) (string, string) {
+func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data string) (string, string) {
 
 	regexRes := p.regexData.FindAllStringSubmatch(data, -1)
 	if regexRes == nil {
-		logger.Errorf(`Cannot locate Data elements for File Created: %s`, data)
+		logger.Errorf(`Cannot locate Data elements for File Create: %s`, data)
 		return "", ""
 	}
 
-	fct := new(FileCreated)
+	fct := new(FileCreate)
 	fct.Domain = it.Domain
 	fct.Host = it.Host
 	fct.EventLogTime = eventLogTime
@@ -970,7 +967,7 @@ func (p *Processor) parseFileCreated(it ImportTask, eventLogTime time.Time, data
 	}
 
 	err := p.db.
-		InsertInto("file_creation_time").
+		InsertInto("file_create").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time").
 		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
 		fct.CreationUtcTime).

@@ -118,10 +118,9 @@ type CreateRemoteThread struct {
 }
 
 // Represents an "process_accessed" record
-type ProcessAccesssed struct {
+type ProcessAccess struct {
 	Base
 	SourceProcessId int64  `db:"source_process_id"`
-	SourceThreadId  int64  `db:"source_thread_id"`
 	SourceImage 	string `db:"source_image"`
 	TargetProcessId int64  `db:"target_process_id"`
 	TargetImage   	string `db:"target_image"`
@@ -129,8 +128,8 @@ type ProcessAccesssed struct {
 	CallTrace  		string `db:"call_trace"`
 }
 
-// Represents an "file_created" record
-type FileCreated struct {
+// Represents an "file_create" record
+type FileCreate struct {
 	Base
 	ProcessId               int64     `db:"process_id"`
 	Image                   string    `db:"image"`

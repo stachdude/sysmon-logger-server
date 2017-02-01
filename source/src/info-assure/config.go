@@ -16,4 +16,5 @@ type Config struct {
 	ServerKey        string `yaml:"server_key"`
 	TempDir          string `yaml:"temp_dir"`
 	ExportDir        string `yaml:"export_dir"`
+	MaxDataAgeDays   int    `yaml:"max_data_age_days"`
 }

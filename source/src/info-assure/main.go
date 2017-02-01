@@ -58,6 +58,7 @@ func main() {
 
 	cronner = cron.New()
 	cronner.AddFunc("1 * * * * *", performHourlyTasks)
+	cronner.AddFunc("@every 1h0m", performDataPurge)
 	//cronner.AddFunc("@hourly", performHourlyTasks)
 	cronner.Start()
 
@@ -325,4 +326,71 @@ func performHourlyTasks() {
 	exportDataForString(
 		SQL_MD5_IMAGE_LOADED, "MD5 (Image Loaded)",
 		EXPORT_TYPE_MD5_IMAGE_LOADED, PREFIX_EXPORT_MD5_IMAGE_LOADED)
+}
+
+//
+func performDataPurge() {
+
+	if config.MaxDataAgeDays == 0 || config.MaxDataAgeDays == -1 {
+		return
+	}
+
+	logger.Info("Purging data")
+
+	// Use the config file value to determine what is classed as an old job
+	staleTimestamp := time.Now().UTC().Add(-time.Duration(24*config.MaxDataAgeDays) * time.Hour)
+
+	_, err := db.
+	DeleteFrom("alert").
+		Where("timestamp < $1", staleTimestamp).
+		Exec()
+
+	if err != nil {
+		logger.Errorf("Error deleting stale alerts: %v", err)
+	}
+
+	// Retrieve instance.Id's where timestamp is less
+	var ids []int64
+
+	err = db.
+	Select(`id`).
+		From("instance").
+		Where("timestamp < $1", staleTimestamp).
+		QueryStructs(&ids)
+
+	// Delete from the "previous_autoruns" table
+	for _, i := range ids {
+		_, err = db.
+		DeleteFrom("previous_autoruns").
+			Where("instance = $1", i).
+			Exec()
+
+		if err != nil {
+			logger.Errorf("Error deleting stale previous_autoruns records: %v (%d)", err, i)
+		}
+	}
+
+	// Delete from the "current_autoruns" table
+	for _, i := range ids {
+		_, err = db.
+		DeleteFrom("current_autoruns").
+			Where("instance = $1", i).
+			Exec()
+
+		if err != nil {
+			logger.Errorf("Error deleting stale current_autoruns records: %v (%d)", err, i)
+		}
+	}
+
+	// Delete from the "instance" table
+	for _, i := range ids {
+		_, err = db.
+		DeleteFrom("instance").
+			Where("id = $1", i).
+			Exec()
+
+		if err != nil {
+			logger.Errorf("Error deleting stale instance records: %v (%d)", err, i)
+		}
+	}
 }

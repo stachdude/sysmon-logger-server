@@ -57,9 +57,9 @@ func main() {
 	createProcessors()
 
 	cronner = cron.New()
-	cronner.AddFunc("1 * * * * *", performHourlyTasks)
-	cronner.AddFunc("@every 1h0m", performDataPurge)
-	//cronner.AddFunc("@hourly", performHourlyTasks)
+	//cronner.AddFunc("1 * * * * *", performHourlyTasks)
+	cronner.AddFunc("@hourly", performDataPurge)
+	cronner.AddFunc("@hourly", performHourlyTasks)
 	cronner.Start()
 
 	var r *gin.Engine

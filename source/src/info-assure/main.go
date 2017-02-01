@@ -58,7 +58,7 @@ func main() {
 
 	cronner = cron.New()
 	//cronner.AddFunc("1 * * * * *", performHourlyTasks)
-	cronner.AddFunc("@hourly", performDataPurge)
+	cronner.AddFunc("@daily", performDataPurge)
 	cronner.AddFunc("@hourly", performHourlyTasks)
 	cronner.Start()
 

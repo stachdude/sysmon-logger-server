@@ -44,21 +44,28 @@ const (
 	SQL_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH    string = "SELECT image_loaded AS string1, md5 AS string2, COUNT(image_loaded) AS total FROM image_loaded GROUP BY string1, string2 ORDER BY string1"
 	SQL_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH    string = "SELECT image_loaded AS string1, md5 AS string2, COUNT(image_loaded) AS total FROM image_loaded GROUP BY string1, string2 ORDER BY string2"
 
+    SQL_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_PATH string = "SELECT image AS string1, sha256 AS string2, COUNT(image) AS total FROM file_stream GROUP BY string1, string2 ORDER BY string1"
+    SQL_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_HASH string = "SELECT image AS string1, sha256 AS string2, COUNT(image) AS total FROM file_stream GROUP BY string1, string2 ORDER BY string2"
+    SQL_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_PATH    string = "SELECT image AS string1, md5 AS string2, COUNT(image) AS total FROM file_stream GROUP BY string1, string2 ORDER BY string1"
+    SQL_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_HASH    string = "SELECT image AS string1, md5 AS string2, COUNT(image) AS total FROM file_stream GROUP BY string1, string2 ORDER BY string2"
+
 	SQL_NETWORK_CONNECTION_DISTINCT_DEST_IP string = "SELECT DISTINCT destination_ip as string FROM network_connection ORDER BY string"
 	SQL_NETWORK_CONNECTION_COUNT_DEST_IP    string = "SELECT DISTINCT destination_ip as string, COUNT(destination_ip) as total FROM network_connection GROUP BY string ORDER BY string"
 
 	SQL_NETWORK_CONNECTION_DISTINCT_DEST_HOST string = "SELECT DISTINCT destination_host_name as string FROM network_connection ORDER BY string"
 	SQL_NETWORK_CONNECTION_COUNT_DEST_HOST    string = "SELECT DISTINCT destination_host_name as string, COUNT(destination_host_name) as total FROM network_connection GROUP BY string ORDER BY string"
 
-	SQL_SHA256_ALL            string = `SELECT DISTINCT sha256 FROM process_create UNION SELECT DISTINCT sha256 FROM driver_loaded UNION SELECT DISTINCT sha256 FROM image_loaded`
+	SQL_SHA256_ALL            string = SQL_SHA256_PROCESS_CREATE + " UNION " + SQL_SHA256_DRIVER_LOADED + " UNION " + SQL_SHA256_IMAGE_LOADED + " UNION " + SQL_SHA256_FILE_STREAM
 	SQL_SHA256_PROCESS_CREATE string = `SELECT DISTINCT sha256 FROM process_create`
 	SQL_SHA256_DRIVER_LOADED  string = `SELECT DISTINCT sha256 FROM driver_loaded`
 	SQL_SHA256_IMAGE_LOADED   string = `SELECT DISTINCT sha256 FROM image_loaded`
+    SQL_SHA256_FILE_STREAM    string = `SELECT DISTINCT sha256 FROM file_stream`
 
-	SQL_MD5_ALL            string = `SELECT DISTINCT md5 FROM process_create UNION SELECT DISTINCT md5 FROM driver_loaded UNION SELECT DISTINCT md5 FROM image_loaded`
+	SQL_MD5_ALL            string = SQL_MD5_PROCESS_CREATE + " UNION " + SQL_MD5_DRIVER_LOADED + " UNION " + SQL_MD5_IMAGE_LOADED + " UNION " + SQL_MD5_FILE_STREAM
 	SQL_MD5_PROCESS_CREATE string = `SELECT DISTINCT md5 FROM process_create`
 	SQL_MD5_DRIVER_LOADED  string = `SELECT DISTINCT md5 FROM driver_loaded`
 	SQL_MD5_IMAGE_LOADED   string = `SELECT DISTINCT md5 FROM image_loaded`
+    SQL_MD5_FILE_STREAM    string = `SELECT DISTINCT md5 FROM file_stream`
 )
 
 const (
@@ -77,6 +84,11 @@ const (
 	PREFIX_EXPORT_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH    string = "image-loaded-path-md5-count-by-path-"
 	PREFIX_EXPORT_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH    string = "image-loaded-path-md5-count-by-hash-"
 
+    PREFIX_EXPORT_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_PATH string = "file-stream-path-sha256-count-by-path-"
+    PREFIX_EXPORT_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_HASH string = "file-stream-path-sha256-count-by-hash-"
+    PREFIX_EXPORT_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_PATH    string = "file-stream-path-md5-count-by-path-"
+    PREFIX_EXPORT_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_HASH    string = "file-stream-path-md5-count-by-hash-"
+
 	PREFIX_EXPORT_NETWORK_CONNECTION_DISTINCT_DEST_IP         string = "network-connection-destination-ip-"
 	PREFIX_EXPORT_NETWORK_CONNECTION_DISTINCT_DEST_IP_COUNT   string = "network-connection-destination-ip-count-"
 	PREFIX_EXPORT_NETWORK_CONNECTION_DISTINCT_DEST_HOST       string = "network-connection-destination-host-"
@@ -86,11 +98,13 @@ const (
 	PREFIX_EXPORT_SHA256_PROCESS_CREATE string = "sha256-process-create-"
 	PREFIX_EXPORT_SHA256_DRIVER_LOADED  string = "sha256-driver-imaged-"
 	PREFIX_EXPORT_SHA256_IMAGE_LOADED   string = "sha256-image-loaded-"
+    PREFIX_EXPORT_SHA256_FILE_STREAM    string = "sha256-file-stream-"
 
 	PREFIX_EXPORT_MD5_ALL            string = "md5-all-"
 	PREFIX_EXPORT_MD5_PROCESS_CREATE string = "md5-process-create-"
 	PREFIX_EXPORT_MD5_DRIVER_LOADED  string = "md5-driver-imaged-"
 	PREFIX_EXPORT_MD5_IMAGE_LOADED   string = "md5-image-loaded-"
+    PREFIX_EXPORT_MD5_FILE_STREAM    string = "md5-file-stream-"
 )
 
 const (
@@ -109,20 +123,27 @@ const (
 	EXPORT_TYPE_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_PATH    = 11
 	EXPORT_TYPE_IMAGE_LOADED_PATH_MD5_GROUP_PATH_ORDER_HASH    = 12
 
-	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP         = 13
-	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP_COUNT   = 14
-	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST       = 15
-	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST_COUNT = 16
+    EXPORT_TYPE_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_PATH = 13
+    EXPORT_TYPE_FILE_STREAM_PATH_SHA256_GROUP_PATH_ORDER_HASH = 14
+    EXPORT_TYPE_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_PATH    = 15
+    EXPORT_TYPE_FILE_STREAM_PATH_MD5_GROUP_PATH_ORDER_HASH    = 16
 
-	EXPORT_TYPE_SHA256_ALL            = 17
-	EXPORT_TYPE_SHA256_PROCESS_CREATE = 18
-	EXPORT_TYPE_SHA256_DRIVER_LOADED  = 19
-	EXPORT_TYPE_SHA256_IMAGE_LOADED   = 20
+	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP         = 17
+	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_IP_COUNT   = 18
+	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST       = 19
+	EXPORT_TYPE_NETWORK_CONNECTION_DISTINCT_DEST_HOST_COUNT = 20
 
-	EXPORT_TYPE_MD5_ALL            = 21
-	EXPORT_TYPE_MD5_PROCESS_CREATE = 22
-	EXPORT_TYPE_MD5_DRIVER_LOADED  = 23
-	EXPORT_TYPE_MD5_IMAGE_LOADED   = 24
+	EXPORT_TYPE_SHA256_ALL            = 21
+	EXPORT_TYPE_SHA256_PROCESS_CREATE = 22
+	EXPORT_TYPE_SHA256_DRIVER_LOADED  = 23
+	EXPORT_TYPE_SHA256_IMAGE_LOADED   = 24
+    EXPORT_TYPE_SHA256_FILE_STREAM    = 25
+
+	EXPORT_TYPE_MD5_ALL            = 26
+	EXPORT_TYPE_MD5_PROCESS_CREATE = 27
+	EXPORT_TYPE_MD5_DRIVER_LOADED  = 28
+	EXPORT_TYPE_MD5_IMAGE_LOADED   = 29
+    EXPORT_TYPE_MD5_FILE_STREAM    = 30
 )
 
 // ##### Methods #############################################################

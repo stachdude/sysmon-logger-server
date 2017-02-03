@@ -91,7 +91,7 @@ func (p Processor) Process(it ImportTask) {
 		}
 
 		if config.Debug == true {
-			//logger.Infof("Domain: %s, Host: %s, Event: %s", it.Domain, it.Host, eventName)
+			logger.Infof("Domain: %s, Host: %s, Event: %s", it.Domain, it.Host, eventName)
 		}
 
 		switch eventName {
@@ -263,8 +263,9 @@ func (p *Processor) parseProcessCreate(it ImportTask, eventLogTime time.Time, da
 			pc.ProcessId, pc.Image, pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
 			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser),
 		fmt.Sprintf(`Process ID: %d Image: %s Command Line: %s Current Directory: %s MD5: %s SHA256: %s Parent Process ID: %d Parent Image: %s Parent Command Line: %s Process User: %s`,
-			pc.ProcessId, pc.Image, pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
-			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser)
+			pc.ProcessId, strings.ToLower(pc.Image), strings.ToLower(pc.CommandLine),
+			strings.ToLower(pc.CurrentDirectory), strings.ToLower(pc.Md5), strings.ToLower(pc.Sha256), pc.ParentProcessId,
+			strings.ToLower(pc.ParentImage), strings.ToLower(pc.ParentCommandLine), strings.ToLower(pc.ProcessUser))
 }
 
 //
@@ -353,7 +354,8 @@ func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time,
 			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
 			fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006")),
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s Previous Creation Time (UTC): %s`,
-			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
+			fct.ProcessId, strings.ToLower(fct.Image), strings.ToLower(fct.TargetFileName),
+			fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
 			fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006"))
 }
 
@@ -464,8 +466,10 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 		fmt.Sprintf(`Process ID: %d Image: %s Process User: %s Protocol: %s Initiated: %t Source IP: %s
 		Source Host Name: %s Source Port: %d Source Port Name: %s Destination IP: %s Destination Host Name: %s
 		Destination Port: %d Destination Port Name: %s`,
-			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
-			nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName)
+			nc.ProcessId, strings.ToLower(nc.Image), strings.ToLower(nc.ProcessUser), strings.ToLower(nc.Protocol),
+			nc.Initiated, nc.SourceIp.String, strings.ToLower(nc.SourceHostName),
+			nc.SourcePort, strings.ToLower(nc.SourcePortName), nc.DestinationIp.String, strings.ToLower(nc.DestinationHostName),
+			nc.DestinationPort, strings.ToLower(nc.DestinationPortName))
 }
 
 //
@@ -526,7 +530,7 @@ func (p *Processor) parseProcessTerminate(it ImportTask, eventLogTime time.Time,
 	}
 
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s`, pt.ProcessId, pt.Image),
-		fmt.Sprintf(`Process ID: %d Image: %s`, pt.ProcessId, pt.Image)
+		fmt.Sprintf(`Process ID: %d Image: %s`, pt.ProcessId, strings.ToLower(pt.Image))
 }
 
 //
@@ -603,7 +607,7 @@ func (p *Processor) parseDriverLoaded(it ImportTask, eventLogTime time.Time, dat
 	return fmt.Sprintf(`<strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
 			dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature),
 		fmt.Sprintf(`Image Loaded: %s MD5: %s SHA256: %s Signed: %t Signature: %s`,
-			dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature)
+			strings.ToLower(dl.ImageLoaded), strings.ToLower(dl.Md5), strings.ToLower(dl.Sha256), dl.Signed, strings.ToLower(dl.Signature))
 }
 
 //
@@ -686,7 +690,8 @@ func (p *Processor) parseImageLoaded(it ImportTask, eventLogTime time.Time, data
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
 			il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature),
 		fmt.Sprintf(`Process ID: %d Image: %s Image Loaded: %s MD5: %s SHA256: %s Signed: %t Signature: %s`,
-			il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature)
+			il.ProcessId, strings.ToLower(il.Image), strings.ToLower(il.ImageLoaded), strings.ToLower(il.Md5),
+			strings.ToLower(il.Sha256), il.Signed, strings.ToLower(il.Signature))
 }
 
 //
@@ -770,7 +775,8 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Tim
 	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br><strong>Source Image:</strong> %s<br><strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br><strong>New Thread ID:</strong> %d<br><strong>Start Address:</strong> %s<br><strong>Start Module:</strong> %s<br><strong>Start Function:</strong> %s`,
 			crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId, crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction),
 		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s New Thread ID: %d Start Address: %s Start Module: %s Start Function: %s`,
-			crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId, crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction)
+			crt.SourceProcessId, strings.ToLower(crt.SourceImage), crt.TargetProcessId, strings.ToLower(crt.TargetImage),
+			crt.NewThreadId, crt.StartAddress, strings.ToLower(crt.StartModule), strings.ToLower(crt.StartFunction))
 }
 
 //
@@ -837,7 +843,7 @@ func (p *Processor) parseRawAccessRead(it ImportTask, eventLogTime time.Time, da
 	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Device:</strong> %s`,
 			ra.ProcessId, ra.Image, ra.Device),
 		fmt.Sprintf(`Process ID: %d Image: %s Device: %s`,
-			ra.ProcessId, ra.Image, ra.Device)
+			ra.ProcessId, strings.ToLower(ra.Image), strings.ToLower(ra.Device))
 }
 
 //
@@ -916,7 +922,7 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 	<strong>Granted Access:</strong> %s<br><strong>Call Trace:</strong> %s<br>`,
 			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
 		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s`,
-			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage)
+			pa.SourceProcessId, strings.ToLower(pa.SourceImage), pa.TargetProcessId, strings.ToLower(pa.TargetImage))
 }
 
 //
@@ -993,7 +999,8 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 	<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br><strong>`,
 			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006")),
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s`,
-			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"))
+			fct.ProcessId, strings.ToLower(fct.Image), strings.ToLower(fct.TargetFileName),
+			fct.CreationUtcTime.Format("15:04:05 02/01/2006"))
 }
 
 //
@@ -1125,7 +1132,7 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s`,
 			rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject),
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s`,
-			rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject)
+			rad.ProcessId, strings.ToLower(rad.Image), rad.EventType, rad.TargetObject)
 }
 
 //
@@ -1264,5 +1271,6 @@ func (p *Processor) parseFileStream(it ImportTask, eventLogTime time.Time, data 
 		<strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s`,
 			fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256),
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation UTC Time: %s MD5: %s SHA256: %s`,
-			fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256)
+			fs.ProcessId, strings.ToLower(fs.Image), strings.ToLower(fs.TargetFileName),
+			fs.CreationUtcTime.Format("15:04:05 02/01/2006"), strings.ToLower(fs.Md5), strings.ToLower(fs.Sha256))
 }

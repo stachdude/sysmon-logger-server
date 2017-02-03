@@ -56,9 +56,6 @@ func main() {
 	initialiseDatabase()
 	createProcessors()
 
-	performHourlyTasks()
-	return
-
 	cronner = cron.New()
 	//cronner.AddFunc("1 * * * * *", performHourlyTasks)
 	cronner.AddFunc("@daily", performDataPurge)

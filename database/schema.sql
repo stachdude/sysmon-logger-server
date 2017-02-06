@@ -5,7 +5,7 @@
 -- Dumped from database version 9.5.5
 -- Dumped by pg_dump version 9.5.5
 
--- Started on 2017-02-01 07:55:11 GMT
+-- Started on 2017-02-06 15:21:22 GMT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,7 +24,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2283 (class 0 OID 0)
+-- TOC entry 2305 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
 --
@@ -72,7 +72,7 @@ CREATE SEQUENCE create_remote_thread_id_seq
 
 
 --
--- TOC entry 2284 (class 0 OID 0)
+-- TOC entry 2306 (class 0 OID 0)
 -- Dependencies: 185
 -- Name: create_remote_thread_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -113,7 +113,7 @@ CREATE SEQUENCE driver_loaded_id_seq
 
 
 --
--- TOC entry 2285 (class 0 OID 0)
+-- TOC entry 2307 (class 0 OID 0)
 -- Dependencies: 187
 -- Name: driver_loaded_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -151,7 +151,7 @@ CREATE SEQUENCE event_id_seq
 
 
 --
--- TOC entry 2286 (class 0 OID 0)
+-- TOC entry 2308 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: event_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -186,7 +186,7 @@ CREATE SEQUENCE export_id_seq
 
 
 --
--- TOC entry 2287 (class 0 OID 0)
+-- TOC entry 2309 (class 0 OID 0)
 -- Dependencies: 184
 -- Name: export_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -226,7 +226,7 @@ CREATE SEQUENCE file_create_id_seq
 
 
 --
--- TOC entry 2288 (class 0 OID 0)
+-- TOC entry 2310 (class 0 OID 0)
 -- Dependencies: 209
 -- Name: file_create_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -267,12 +267,89 @@ CREATE SEQUENCE file_creation_time_id_seq
 
 
 --
--- TOC entry 2289 (class 0 OID 0)
+-- TOC entry 2311 (class 0 OID 0)
 -- Dependencies: 189
 -- Name: file_creation_time_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE file_creation_time_id_seq OWNED BY file_creation_time.id;
+
+
+--
+-- TOC entry 212 (class 1259 OID 33560)
+-- Name: file_stream; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE file_stream (
+    id bigint NOT NULL,
+    domain text,
+    host text,
+    event_log_time timestamp without time zone,
+    utc_time timestamp without time zone,
+    process_id bigint,
+    image text,
+    target_file_name text,
+    creation_utc_time timestamp without time zone,
+    md5 text,
+    sha256 text
+);
+
+
+--
+-- TOC entry 211 (class 1259 OID 33558)
+-- Name: file_stream_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE file_stream_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 2312 (class 0 OID 0)
+-- Dependencies: 211
+-- Name: file_stream_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE file_stream_id_seq OWNED BY file_stream.id;
+
+
+--
+-- TOC entry 213 (class 1259 OID 33751)
+-- Name: hunt_query; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE hunt_query (
+    id integer NOT NULL,
+    name text,
+    description text,
+    query_sql text
+);
+
+
+--
+-- TOC entry 214 (class 1259 OID 33754)
+-- Name: hunt_query_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE hunt_query_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- TOC entry 2313 (class 0 OID 0)
+-- Dependencies: 214
+-- Name: hunt_query_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE hunt_query_id_seq OWNED BY hunt_query.id;
 
 
 --
@@ -310,7 +387,7 @@ CREATE SEQUENCE image_loaded_id_seq
 
 
 --
--- TOC entry 2290 (class 0 OID 0)
+-- TOC entry 2314 (class 0 OID 0)
 -- Dependencies: 191
 -- Name: image_loaded_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -359,7 +436,7 @@ CREATE SEQUENCE network_connection_id_seq
 
 
 --
--- TOC entry 2291 (class 0 OID 0)
+-- TOC entry 2315 (class 0 OID 0)
 -- Dependencies: 193
 -- Name: network_connection_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -401,7 +478,7 @@ CREATE SEQUENCE process_access_id_seq
 
 
 --
--- TOC entry 2292 (class 0 OID 0)
+-- TOC entry 2316 (class 0 OID 0)
 -- Dependencies: 207
 -- Name: process_access_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -447,7 +524,7 @@ CREATE SEQUENCE process_create_id_seq
 
 
 --
--- TOC entry 2293 (class 0 OID 0)
+-- TOC entry 2317 (class 0 OID 0)
 -- Dependencies: 195
 -- Name: process_create_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -485,7 +562,7 @@ CREATE SEQUENCE process_terminate_id_seq
 
 
 --
--- TOC entry 2294 (class 0 OID 0)
+-- TOC entry 2318 (class 0 OID 0)
 -- Dependencies: 197
 -- Name: process_terminate_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -524,7 +601,7 @@ CREATE SEQUENCE raw_access_read_id_seq
 
 
 --
--- TOC entry 2295 (class 0 OID 0)
+-- TOC entry 2319 (class 0 OID 0)
 -- Dependencies: 199
 -- Name: raw_access_read_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -564,7 +641,7 @@ CREATE SEQUENCE registry_add_delete_id_seq
 
 
 --
--- TOC entry 2296 (class 0 OID 0)
+-- TOC entry 2320 (class 0 OID 0)
 -- Dependencies: 201
 -- Name: registry_add_delete_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -605,7 +682,7 @@ CREATE SEQUENCE registry_rename_id_seq
 
 
 --
--- TOC entry 2297 (class 0 OID 0)
+-- TOC entry 2321 (class 0 OID 0)
 -- Dependencies: 203
 -- Name: registry_rename_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -646,7 +723,7 @@ CREATE SEQUENCE registry_set_id_seq
 
 
 --
--- TOC entry 2298 (class 0 OID 0)
+-- TOC entry 2322 (class 0 OID 0)
 -- Dependencies: 205
 -- Name: registry_set_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -655,7 +732,7 @@ ALTER SEQUENCE registry_set_id_seq OWNED BY registry_set.id;
 
 
 --
--- TOC entry 2118 (class 2604 OID 32229)
+-- TOC entry 2132 (class 2604 OID 32229)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -663,7 +740,7 @@ ALTER TABLE ONLY create_remote_thread ALTER COLUMN id SET DEFAULT nextval('creat
 
 
 --
--- TOC entry 2119 (class 2604 OID 32240)
+-- TOC entry 2133 (class 2604 OID 32240)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -671,7 +748,7 @@ ALTER TABLE ONLY driver_loaded ALTER COLUMN id SET DEFAULT nextval('driver_loade
 
 
 --
--- TOC entry 2116 (class 2604 OID 22136)
+-- TOC entry 2130 (class 2604 OID 22136)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -679,7 +756,7 @@ ALTER TABLE ONLY event ALTER COLUMN id SET DEFAULT nextval('event_id_seq'::regcl
 
 
 --
--- TOC entry 2117 (class 2604 OID 22137)
+-- TOC entry 2131 (class 2604 OID 22137)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -687,7 +764,7 @@ ALTER TABLE ONLY export ALTER COLUMN id SET DEFAULT nextval('export_id_seq'::reg
 
 
 --
--- TOC entry 2130 (class 2604 OID 33330)
+-- TOC entry 2144 (class 2604 OID 33330)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -695,7 +772,7 @@ ALTER TABLE ONLY file_create ALTER COLUMN id SET DEFAULT nextval('file_create_id
 
 
 --
--- TOC entry 2120 (class 2604 OID 32253)
+-- TOC entry 2134 (class 2604 OID 32253)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -703,7 +780,23 @@ ALTER TABLE ONLY file_creation_time ALTER COLUMN id SET DEFAULT nextval('file_cr
 
 
 --
--- TOC entry 2121 (class 2604 OID 32298)
+-- TOC entry 2145 (class 2604 OID 33563)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY file_stream ALTER COLUMN id SET DEFAULT nextval('file_stream_id_seq'::regclass);
+
+
+--
+-- TOC entry 2146 (class 2604 OID 33756)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY hunt_query ALTER COLUMN id SET DEFAULT nextval('hunt_query_id_seq'::regclass);
+
+
+--
+-- TOC entry 2135 (class 2604 OID 32298)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -711,7 +804,7 @@ ALTER TABLE ONLY image_loaded ALTER COLUMN id SET DEFAULT nextval('image_loaded_
 
 
 --
--- TOC entry 2122 (class 2604 OID 32365)
+-- TOC entry 2136 (class 2604 OID 32365)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -719,7 +812,7 @@ ALTER TABLE ONLY network_connection ALTER COLUMN id SET DEFAULT nextval('network
 
 
 --
--- TOC entry 2129 (class 2604 OID 33319)
+-- TOC entry 2143 (class 2604 OID 33319)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -727,7 +820,7 @@ ALTER TABLE ONLY process_access ALTER COLUMN id SET DEFAULT nextval('process_acc
 
 
 --
--- TOC entry 2123 (class 2604 OID 32376)
+-- TOC entry 2137 (class 2604 OID 32376)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -735,7 +828,7 @@ ALTER TABLE ONLY process_create ALTER COLUMN id SET DEFAULT nextval('process_cre
 
 
 --
--- TOC entry 2124 (class 2604 OID 32390)
+-- TOC entry 2138 (class 2604 OID 32390)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -743,7 +836,7 @@ ALTER TABLE ONLY process_terminate ALTER COLUMN id SET DEFAULT nextval('process_
 
 
 --
--- TOC entry 2125 (class 2604 OID 32403)
+-- TOC entry 2139 (class 2604 OID 32403)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -751,7 +844,7 @@ ALTER TABLE ONLY raw_access_read ALTER COLUMN id SET DEFAULT nextval('raw_access
 
 
 --
--- TOC entry 2126 (class 2604 OID 32414)
+-- TOC entry 2140 (class 2604 OID 32414)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -759,7 +852,7 @@ ALTER TABLE ONLY registry_add_delete ALTER COLUMN id SET DEFAULT nextval('regist
 
 
 --
--- TOC entry 2127 (class 2604 OID 32425)
+-- TOC entry 2141 (class 2604 OID 32425)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -767,7 +860,7 @@ ALTER TABLE ONLY registry_rename ALTER COLUMN id SET DEFAULT nextval('registry_r
 
 
 --
--- TOC entry 2128 (class 2604 OID 32436)
+-- TOC entry 2142 (class 2604 OID 32436)
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -775,7 +868,7 @@ ALTER TABLE ONLY registry_set ALTER COLUMN id SET DEFAULT nextval('registry_set_
 
 
 --
--- TOC entry 2138 (class 2606 OID 32234)
+-- TOC entry 2154 (class 2606 OID 32234)
 -- Name: create_remote_thread_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -784,7 +877,7 @@ ALTER TABLE ONLY create_remote_thread
 
 
 --
--- TOC entry 2140 (class 2606 OID 32245)
+-- TOC entry 2156 (class 2606 OID 32245)
 -- Name: driver_loaded_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -793,7 +886,7 @@ ALTER TABLE ONLY driver_loaded
 
 
 --
--- TOC entry 2132 (class 2606 OID 22149)
+-- TOC entry 2148 (class 2606 OID 22149)
 -- Name: event_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -802,7 +895,7 @@ ALTER TABLE ONLY event
 
 
 --
--- TOC entry 2134 (class 2606 OID 22151)
+-- TOC entry 2150 (class 2606 OID 22151)
 -- Name: export_file_name_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -811,7 +904,7 @@ ALTER TABLE ONLY export
 
 
 --
--- TOC entry 2136 (class 2606 OID 22153)
+-- TOC entry 2152 (class 2606 OID 22153)
 -- Name: export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -820,7 +913,7 @@ ALTER TABLE ONLY export
 
 
 --
--- TOC entry 2162 (class 2606 OID 33335)
+-- TOC entry 2178 (class 2606 OID 33335)
 -- Name: file_create_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -829,7 +922,7 @@ ALTER TABLE ONLY file_create
 
 
 --
--- TOC entry 2142 (class 2606 OID 32258)
+-- TOC entry 2158 (class 2606 OID 32258)
 -- Name: file_creation_time_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -838,7 +931,34 @@ ALTER TABLE ONLY file_creation_time
 
 
 --
--- TOC entry 2144 (class 2606 OID 32303)
+-- TOC entry 2180 (class 2606 OID 33568)
+-- Name: file_stream_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY file_stream
+    ADD CONSTRAINT file_stream_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2182 (class 2606 OID 33766)
+-- Name: hunt_query_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY hunt_query
+    ADD CONSTRAINT hunt_query_name_key UNIQUE (name);
+
+
+--
+-- TOC entry 2184 (class 2606 OID 33764)
+-- Name: hunt_query_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY hunt_query
+    ADD CONSTRAINT hunt_query_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2160 (class 2606 OID 32303)
 -- Name: image_loaded_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -847,7 +967,7 @@ ALTER TABLE ONLY image_loaded
 
 
 --
--- TOC entry 2146 (class 2606 OID 32370)
+-- TOC entry 2162 (class 2606 OID 32370)
 -- Name: network_connection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -856,7 +976,7 @@ ALTER TABLE ONLY network_connection
 
 
 --
--- TOC entry 2160 (class 2606 OID 33324)
+-- TOC entry 2176 (class 2606 OID 33324)
 -- Name: process_access_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -865,7 +985,7 @@ ALTER TABLE ONLY process_access
 
 
 --
--- TOC entry 2148 (class 2606 OID 32381)
+-- TOC entry 2164 (class 2606 OID 32381)
 -- Name: process_create_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -874,7 +994,7 @@ ALTER TABLE ONLY process_create
 
 
 --
--- TOC entry 2150 (class 2606 OID 32395)
+-- TOC entry 2166 (class 2606 OID 32395)
 -- Name: process_terminate_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -883,7 +1003,7 @@ ALTER TABLE ONLY process_terminate
 
 
 --
--- TOC entry 2152 (class 2606 OID 32408)
+-- TOC entry 2168 (class 2606 OID 32408)
 -- Name: raw_access_read_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -892,7 +1012,7 @@ ALTER TABLE ONLY raw_access_read
 
 
 --
--- TOC entry 2154 (class 2606 OID 32419)
+-- TOC entry 2170 (class 2606 OID 32419)
 -- Name: registry_add_delete_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -901,7 +1021,7 @@ ALTER TABLE ONLY registry_add_delete
 
 
 --
--- TOC entry 2156 (class 2606 OID 32430)
+-- TOC entry 2172 (class 2606 OID 32430)
 -- Name: registry_renamed_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -910,7 +1030,7 @@ ALTER TABLE ONLY registry_rename
 
 
 --
--- TOC entry 2158 (class 2606 OID 32441)
+-- TOC entry 2174 (class 2606 OID 32441)
 -- Name: registry_set_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -918,7 +1038,7 @@ ALTER TABLE ONLY registry_set
     ADD CONSTRAINT registry_set_pkey PRIMARY KEY (id);
 
 
--- Completed on 2017-02-01 07:55:11 GMT
+-- Completed on 2017-02-06 15:21:23 GMT
 
 --
 -- PostgreSQL database dump complete

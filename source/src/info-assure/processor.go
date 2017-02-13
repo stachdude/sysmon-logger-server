@@ -156,7 +156,7 @@ func (p Processor) Process(it ImportTask) {
 		// Add a generic/unified Event record.
 		err = p.db.
 			InsertInto("event").
-			Columns("domain", "host", "utc_time", "type", "message", "message_html").
+			Columns("domain", "host", "utc_time", "type", "plain_text", "html").
 			Values(e.Domain, e.Host, e.UtcTime, e.Type, message, messageHtml).
 			QueryStruct(&e)
 
@@ -210,23 +210,23 @@ func (p *Processor) parseProcessCreate(it ImportTask, eventLogTime time.Time, da
 			pc.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			pc.Image = dataRes[DATA_VALUE]
+			pc.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "commandline":
-			pc.CommandLine = strings.Replace(dataRes[DATA_VALUE], "&quot;", "\"", -1)
+			pc.CommandLine = strings.ToLower(strings.Replace(dataRes[DATA_VALUE], "&quot;", "\"", -1))
 
 		case "currentdirectory":
-			pc.CurrentDirectory = dataRes[DATA_VALUE]
+			pc.CurrentDirectory = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "hashes":
 			indexOf = strings.Index(dataRes[DATA_VALUE], "MD5=")
 			if indexOf != -1 {
-				pc.Md5 = dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32]
+				pc.Md5 = strings.ToLower(dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32])
 			}
 
 			indexOf = strings.Index(dataRes[DATA_VALUE], "SHA256=")
 			if indexOf != -1 {
-				pc.Sha256 = dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64]
+				pc.Sha256 = strings.ToLower(dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64])
 			}
 
 		case "parentprocessid":
@@ -234,22 +234,26 @@ func (p *Processor) parseProcessCreate(it ImportTask, eventLogTime time.Time, da
 			pc.ParentProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "parentimage":
-			pc.ParentImage = dataRes[DATA_VALUE]
+			pc.ParentImage = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "parentcommandline":
-			pc.ParentCommandLine = strings.Replace(dataRes[DATA_VALUE], "&quot;", "\"", -1)
+			pc.ParentCommandLine = strings.ToLower(strings.Replace(dataRes[DATA_VALUE], "&quot;", "\"", -1))
 		case "user":
-			pc.ProcessUser = dataRes[DATA_VALUE]
+			pc.ProcessUser = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
+
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Command Line:</strong> %s<br><strong>Current Directory:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Parent Process ID: </strong>%d<br><strong>Parent Image:</strong> %s<br><strong>Parent Command Line:</strong> %s<br><strong>Process User:</strong> %s`,
+		pc.ProcessId, pc.Image, pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
+		pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser)
 
 	err := p.db.
 		InsertInto("process_create").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "command_line", "current_directory",
-			"md5", "sha256", "parent_process_id", "parent_image", "parent_command_line", "process_user").
+			"md5", "sha256", "parent_process_id", "parent_image", "parent_command_line", "process_user", "html").
 		Values(pc.Domain, pc.Host, pc.EventLogTime, pc.UtcTime, pc.ProcessId, pc.Image,
 			pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
-			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser).
+			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser, html).
 		QueryStruct(&pc)
 
 	if err != nil {
@@ -259,13 +263,11 @@ func (p *Processor) parseProcessCreate(it ImportTask, eventLogTime time.Time, da
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Command Line:</strong> %s<br><strong>Current Directory:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Parent Process ID: </strong>%d<br><strong>Parent Image:</strong> %s<br><strong>Parent Command Line:</strong> %s<br><strong>Process User:</strong> %s`,
-			pc.ProcessId, pc.Image, pc.CommandLine, pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
-			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Command Line: %s Current Directory: %s MD5: %s SHA256: %s Parent Process ID: %d Parent Image: %s Parent Command Line: %s Process User: %s`,
-			pc.ProcessId, strings.ToLower(pc.Image), strings.ToLower(pc.CommandLine),
-			strings.ToLower(pc.CurrentDirectory), strings.ToLower(pc.Md5), strings.ToLower(pc.Sha256), pc.ParentProcessId,
-			strings.ToLower(pc.ParentImage), strings.ToLower(pc.ParentCommandLine), strings.ToLower(pc.ProcessUser))
+			pc.ProcessId, pc.Image, pc.CommandLine,
+			pc.CurrentDirectory, pc.Md5, pc.Sha256, pc.ParentProcessId,
+			pc.ParentImage, pc.ParentCommandLine, pc.ProcessUser)
 }
 
 //
@@ -308,10 +310,10 @@ func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time,
 			fct.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			fct.Image = dataRes[DATA_VALUE]
+			fct.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetfilename":
-			fct.TargetFileName = dataRes[DATA_VALUE]
+			fct.TargetFileName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "creationutctime":
 			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
@@ -333,12 +335,18 @@ func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time,
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+		<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br>
+		<strong>Previous Creation Time (UTC):</strong> %s`,
+		fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
+		fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006"))
+
 	err := p.db.
 		InsertInto("file_creation_time").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time",
-			"previous_creation_utc_time").
+			"previous_creation_utc_time", "html").
 		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
-			fct.CreationUtcTime, fct.PreviousCreationUtcTime).
+			fct.CreationUtcTime, fct.PreviousCreationUtcTime, html).
 		QueryStruct(&fct)
 
 	if err != nil {
@@ -348,13 +356,9 @@ func (p *Processor) parseFileCreationTime(it ImportTask, eventLogTime time.Time,
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-		<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br>
-		<strong>Previous Creation Time (UTC):</strong> %s`,
-			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
-			fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006")),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s Previous Creation Time (UTC): %s`,
-			fct.ProcessId, strings.ToLower(fct.Image), strings.ToLower(fct.TargetFileName),
+			fct.ProcessId, fct.Image, fct.TargetFileName,
 			fct.CreationUtcTime.Format("15:04:05 02/01/2006"),
 			fct.PreviousCreationUtcTime.Format("15:04:05 02/01/2006"))
 }
@@ -399,13 +403,13 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 			nc.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			nc.Image = dataRes[DATA_VALUE]
+			nc.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "user":
-			nc.ProcessUser = dataRes[DATA_VALUE]
+			nc.ProcessUser = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "protocol":
-			nc.Protocol = dataRes[DATA_VALUE]
+			nc.Protocol = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "initiated":
 			nc.Initiated = goutil.ParseBool(dataRes[DATA_VALUE])
@@ -414,39 +418,48 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 			nc.SourceIp.Scan(dataRes[DATA_VALUE])
 
 		case "sourcehostname":
-			nc.SourceHostName = dataRes[DATA_VALUE]
+			nc.SourceHostName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "sourceport":
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
 			nc.SourcePort = goutil.ConvertStringToInt32(dataRes[DATA_VALUE])
 
 		case "sourceportname":
-			nc.SourcePortName = dataRes[DATA_VALUE]
+			nc.SourcePortName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "destinationip":
 			nc.DestinationIp.Scan(dataRes[DATA_VALUE])
 
 		case "destinationhostname":
-			nc.DestinationHostName = dataRes[DATA_VALUE]
+			nc.DestinationHostName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "destinationport":
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
 			nc.DestinationPort = goutil.ConvertStringToInt32(dataRes[DATA_VALUE])
 
 		case "destinationportname":
-			nc.DestinationPortName = dataRes[DATA_VALUE]
+			nc.DestinationPortName = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
+
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+	<strong>Process User:</strong> %s<br><strong>Protocol:</strong> %s<br><strong>Initiated:</strong> %t<br>
+	<strong>Source IP:</strong> %s<br><strong>Source Host Name: </strong>%s<br><strong>Source Port:</strong> %d<br>
+	<strong>Source Port Name: </strong>%s<br><strong>Destination IP:</strong> %s<br>
+	<strong>Destination Host Name:</strong> %s<br><strong>Destination Port:</strong> %d
+	<br><strong>Destination Port Name:</strong> %s`,
+		nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
+		nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName)
 
 	err := p.db.
 		InsertInto("network_connection").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "process_user", "protocol",
 			"initiated", "source_ip", "source_host_name", "source_port", "source_port_name", "destination_ip",
-			"destination_host_name", "destination_port", "destination_port_name").
+			"destination_host_name", "destination_port", "destination_port_name", "html").
 		Values(nc.Domain, nc.Host, nc.EventLogTime, nc.UtcTime, nc.ProcessId, nc.Image,
 			nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp, nc.SourceHostName,
 			nc.SourcePort, nc.SourcePortName, nc.DestinationIp, nc.DestinationHostName,
-			nc.DestinationPort, nc.DestinationPortName).
+			nc.DestinationPort, nc.DestinationPortName, html).
 		QueryStruct(&nc)
 
 	if err != nil {
@@ -456,20 +469,14 @@ func (p *Processor) parseNetworkConnection(it ImportTask, eventLogTime time.Time
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-	<strong>Process User:</strong> %s<br><strong>Protocol:</strong> %s<br><strong>Initiated:</strong> %t<br>
-	<strong>Source IP:</strong> %s<br><strong>Source Host Name: </strong>%s<br><strong>Source Port:</strong> %d<br>
-	<strong>Source Port Name: </strong>%s<br><strong>Destination IP:</strong> %s<br><strong>Destination Host Name:</strong> %s<br><strong>Destination Port:</strong> %d
-	<br><strong>Destination Port Name:</strong> %s`,
-			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol, nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
-			nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName, nc.DestinationPort, nc.DestinationPortName),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Process User: %s Protocol: %s Initiated: %t Source IP: %s
 		Source Host Name: %s Source Port: %d Source Port Name: %s Destination IP: %s Destination Host Name: %s
 		Destination Port: %d Destination Port Name: %s`,
-			nc.ProcessId, strings.ToLower(nc.Image), strings.ToLower(nc.ProcessUser), strings.ToLower(nc.Protocol),
-			nc.Initiated, nc.SourceIp.String, strings.ToLower(nc.SourceHostName),
-			nc.SourcePort, strings.ToLower(nc.SourcePortName), nc.DestinationIp.String, strings.ToLower(nc.DestinationHostName),
-			nc.DestinationPort, strings.ToLower(nc.DestinationPortName))
+			nc.ProcessId, nc.Image, nc.ProcessUser, nc.Protocol,
+			nc.Initiated, nc.SourceIp.String, nc.SourceHostName,
+			nc.SourcePort, nc.SourcePortName, nc.DestinationIp.String, nc.DestinationHostName,
+			nc.DestinationPort, nc.DestinationPortName)
 }
 
 //
@@ -512,14 +519,16 @@ func (p *Processor) parseProcessTerminate(it ImportTask, eventLogTime time.Time,
 			pt.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			pt.Image = dataRes[DATA_VALUE]
+			pt.Image = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s`, pt.ProcessId, pt.Image)
+
 	err := p.db.
 		InsertInto("process_terminate").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image").
-		Values(pt.Domain, pt.Host, pt.EventLogTime, pt.UtcTime, pt.ProcessId, pt.Image).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "html").
+		Values(pt.Domain, pt.Host, pt.EventLogTime, pt.UtcTime, pt.ProcessId, pt.Image, html).
 		QueryStruct(&pt)
 
 	if err != nil {
@@ -529,8 +538,8 @@ func (p *Processor) parseProcessTerminate(it ImportTask, eventLogTime time.Time,
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s`, pt.ProcessId, pt.Image),
-		fmt.Sprintf(`Process ID: %d Image: %s`, pt.ProcessId, strings.ToLower(pt.Image))
+	return html,
+		fmt.Sprintf(`Process ID: %d Image: %s`, pt.ProcessId, pt.Image)
 }
 
 //
@@ -570,31 +579,35 @@ func (p *Processor) parseDriverLoaded(it ImportTask, eventLogTime time.Time, dat
 			dl.UtcTime = parsedTimestamp
 
 		case "imageloaded":
-			dl.ImageLoaded = dataRes[DATA_VALUE]
+			dl.ImageLoaded = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "hashes":
 			indexOf = strings.Index(dataRes[DATA_VALUE], "MD5=")
 			if indexOf != -1 {
-				dl.Md5 = dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32]
+				dl.Md5 = strings.ToLower(dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32])
 			}
 
 			indexOf = strings.Index(dataRes[DATA_VALUE], "SHA256=")
 			if indexOf != -1 {
-				dl.Sha256 = dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64]
+				dl.Sha256 = strings.ToLower(dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64])
 			}
 
 		case "signed":
 			dl.Signed = goutil.ParseBool(dataRes[DATA_VALUE])
 
 		case "signature":
-			dl.Signature = dataRes[DATA_VALUE]
+			dl.Signature = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br>
+		<strong>SHA256:</strong> %s<br><strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
+		dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature)
+
 	err := p.db.
 		InsertInto("driver_loaded").
-		Columns("domain", "host", "event_log_time", "utc_time", "image_loaded", "md5", "sha256", "signed", "signature").
-		Values(dl.Domain, dl.Host, dl.EventLogTime, dl.UtcTime, dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature).
+		Columns("domain", "host", "event_log_time", "utc_time", "image_loaded", "md5", "sha256", "signed", "signature", "html").
+		Values(dl.Domain, dl.Host, dl.EventLogTime, dl.UtcTime, dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature, html).
 		QueryStruct(&dl)
 
 	if err != nil {
@@ -604,10 +617,9 @@ func (p *Processor) parseDriverLoaded(it ImportTask, eventLogTime time.Time, dat
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
-			dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature),
+	return html,
 		fmt.Sprintf(`Image Loaded: %s MD5: %s SHA256: %s Signed: %t Signature: %s`,
-			strings.ToLower(dl.ImageLoaded), strings.ToLower(dl.Md5), strings.ToLower(dl.Sha256), dl.Signed, strings.ToLower(dl.Signature))
+			dl.ImageLoaded, dl.Md5, dl.Sha256, dl.Signed, dl.Signature)
 }
 
 //
@@ -650,34 +662,41 @@ func (p *Processor) parseImageLoaded(it ImportTask, eventLogTime time.Time, data
 			il.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			il.Image = dataRes[DATA_VALUE]
+			il.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "imageloaded":
-			il.ImageLoaded = dataRes[DATA_VALUE]
+			il.ImageLoaded = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "hashes":
 			indexOf = strings.Index(dataRes[DATA_VALUE], "MD5=")
 			if indexOf != -1 {
-				il.Md5 = dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32]
+				il.Md5 = strings.ToLower(dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32])
 			}
 
 			indexOf = strings.Index(dataRes[DATA_VALUE], "SHA256=")
 			if indexOf != -1 {
-				il.Sha256 = dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64]
+				il.Sha256 = strings.ToLower(dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64])
 			}
 
 		case "signed":
 			il.Signed = goutil.ParseBool(dataRes[DATA_VALUE])
 
 		case "signature":
-			il.Signature = dataRes[DATA_VALUE]
+			il.Signature = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+		<strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br>
+		<strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
+		il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature)
+
 	err := p.db.
 		InsertInto("image_loaded").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "image_loaded", "md5", "sha256", "signed", "signature").
-		Values(il.Domain, il.Host, il.EventLogTime, il.UtcTime, il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image",
+		"image_loaded", "md5", "sha256", "signed", "signature", "html").
+		Values(il.Domain, il.Host, il.EventLogTime, il.UtcTime, il.ProcessId, il.Image,
+		il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature, html).
 		QueryStruct(&il)
 
 	if err != nil {
@@ -687,11 +706,10 @@ func (p *Processor) parseImageLoaded(it ImportTask, eventLogTime time.Time, data
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Image Loaded:</strong> %s<br><strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s<br><strong>Signed:</strong> %t<br><strong>Signature:</strong> %s`,
-			il.ProcessId, il.Image, il.ImageLoaded, il.Md5, il.Sha256, il.Signed, il.Signature),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Image Loaded: %s MD5: %s SHA256: %s Signed: %t Signature: %s`,
-			il.ProcessId, strings.ToLower(il.Image), strings.ToLower(il.ImageLoaded), strings.ToLower(il.Md5),
-			strings.ToLower(il.Sha256), il.Signed, strings.ToLower(il.Signature))
+			il.ProcessId, il.Image, il.ImageLoaded, il.Md5,
+			il.Sha256, il.Signed, il.Signature)
 }
 
 //
@@ -737,10 +755,10 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Tim
 			crt.SourceProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "sourceimage":
-			crt.SourceImage = dataRes[DATA_VALUE]
+			crt.SourceImage = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetimage":
-			crt.TargetImage = dataRes[DATA_VALUE]
+			crt.TargetImage = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "newthreadid":
 			dataRes[DATA_VALUE] = strings.Map(RemoveNonNumericChars, dataRes[DATA_VALUE])
@@ -750,19 +768,26 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Tim
 			crt.StartAddress = dataRes[DATA_VALUE]
 
 		case "startmodule":
-			crt.StartModule = dataRes[DATA_VALUE]
+			crt.StartModule = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "startfunction":
-			crt.StartFunction = dataRes[DATA_VALUE]
+			crt.StartFunction = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
+
+	html := fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br><strong>Source Image:</strong> %s<br>
+		<strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br>
+		<strong>New Thread ID:</strong> %d<br><strong>Start Address:</strong> %s<br>
+		<strong>Start Module:</strong> %s<br><strong>Start Function:</strong> %s`,
+		crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId, crt.TargetImage, crt.NewThreadId,
+		crt.StartAddress, crt.StartModule, crt.StartFunction)
 
 	err := p.db.
 		InsertInto("create_remote_thread").
 		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image", "target_process_id",
-			"target_image", "new_thread_id", "start_address", "start_module", "start_function").
+			"target_image", "new_thread_id", "start_address", "start_module", "start_function", "html").
 		Values(crt.Domain, crt.Host, crt.EventLogTime, crt.UtcTime, crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId,
-			crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction).
+			crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction, "html").
 		QueryStruct(&crt)
 
 	if err != nil {
@@ -772,11 +797,11 @@ func (p *Processor) parseCreateRemoteThread(it ImportTask, eventLogTime time.Tim
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br><strong>Source Image:</strong> %s<br><strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br><strong>New Thread ID:</strong> %d<br><strong>Start Address:</strong> %s<br><strong>Start Module:</strong> %s<br><strong>Start Function:</strong> %s`,
-			crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId, crt.TargetImage, crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction),
-		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s New Thread ID: %d Start Address: %s Start Module: %s Start Function: %s`,
-			crt.SourceProcessId, strings.ToLower(crt.SourceImage), crt.TargetProcessId, strings.ToLower(crt.TargetImage),
-			crt.NewThreadId, crt.StartAddress, strings.ToLower(crt.StartModule), strings.ToLower(crt.StartFunction))
+	return html,
+		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s
+			New Thread ID: %d Start Address: %s Start Module: %s Start Function: %s`,
+			crt.SourceProcessId, crt.SourceImage, crt.TargetProcessId, crt.TargetImage,
+			crt.NewThreadId, crt.StartAddress, crt.StartModule, crt.StartFunction)
 }
 
 //
@@ -819,18 +844,21 @@ func (p *Processor) parseRawAccessRead(it ImportTask, eventLogTime time.Time, da
 			ra.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			ra.Image = dataRes[DATA_VALUE]
+			ra.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "device":
-			ra.Device = dataRes[DATA_VALUE]
+			ra.Device = strings.ToLower(dataRes[DATA_VALUE])
 
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Device:</strong> %s`,
+		ra.ProcessId, ra.Image, ra.Device)
+
 	err := p.db.
 		InsertInto("raw_access").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "device").
-		Values(ra.Domain, ra.Host, ra.EventLogTime, ra.UtcTime, ra.ProcessId, ra.Image, ra.Device).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "device", "html").
+		Values(ra.Domain, ra.Host, ra.EventLogTime, ra.UtcTime, ra.ProcessId, ra.Image, ra.Device, html).
 		QueryStruct(&ra)
 
 	if err != nil {
@@ -840,10 +868,9 @@ func (p *Processor) parseRawAccessRead(it ImportTask, eventLogTime time.Time, da
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br><strong>Device:</strong> %s`,
-			ra.ProcessId, ra.Image, ra.Device),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Device: %s`,
-			ra.ProcessId, strings.ToLower(ra.Image), strings.ToLower(ra.Device))
+			ra.ProcessId, ra.Image, ra.Device)
 }
 
 //
@@ -886,28 +913,33 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 			pa.SourceProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "sourceimage":
-			pa.SourceImage = dataRes[DATA_VALUE]
+			pa.SourceImage = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetprocessid":
 			pa.TargetProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "targetimage":
-			pa.TargetImage = dataRes[DATA_VALUE]
+			pa.TargetImage = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "grantedaccess":
-			pa.GrantedAccess = dataRes[DATA_VALUE]
+			pa.GrantedAccess = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "calltrace":
-			pa.CallTrace = dataRes[DATA_VALUE]
+			pa.CallTrace = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
+
+	html := fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br>
+	<strong>Source Image:</strong> %s<strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br>
+	<strong>Granted Access:</strong> %s<br><strong>Call Trace:</strong> %s<br>`,
+		pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace)
 
 	err := p.db.
 		InsertInto("process_access").
 		Columns("domain", "host", "event_log_time", "utc_time", "source_process_id", "source_image",
-			"target_process_id", "target_image", "granted_access", "call_trace").
+			"target_process_id", "target_image", "granted_access", "call_trace", "html").
 		Values(pa.Domain, pa.Host, pa.EventLogTime, pa.UtcTime, pa.SourceProcessId, pa.SourceImage,
-			pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace).
+			pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace, html).
 		QueryStruct(&pa)
 
 	if err != nil {
@@ -917,12 +949,9 @@ func (p *Processor) parseProcessAccess(it ImportTask, eventLogTime time.Time, da
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Source Process ID:</strong> %d<br>
-	<strong>Source Image:</strong> %s<strong>Target Process ID:</strong> %d<br><strong>Target Image:</strong> %s<br>
-	<strong>Granted Access:</strong> %s<br><strong>Call Trace:</strong> %s<br>`,
-			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage, pa.GrantedAccess, pa.CallTrace),
+	return html,
 		fmt.Sprintf(`Source Process ID: %d Source Image: %s Target Process ID: %d Target Image: %s`,
-			pa.SourceProcessId, strings.ToLower(pa.SourceImage), pa.TargetProcessId, strings.ToLower(pa.TargetImage))
+			pa.SourceProcessId, pa.SourceImage, pa.TargetProcessId, pa.TargetImage)
 }
 
 //
@@ -965,10 +994,10 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 			fct.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			fct.Image = dataRes[DATA_VALUE]
+			fct.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetfilename":
-			fct.TargetFileName = dataRes[DATA_VALUE]
+			fct.TargetFileName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "creationutctime":
 			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
@@ -981,11 +1010,16 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+	<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br><strong>`,
+		fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006"))
+
 	err := p.db.
 		InsertInto("file_create").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "target_file_name", "creation_utc_time").
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image",
+			"target_file_name", "creation_utc_time", "html").
 		Values(fct.Domain, fct.Host, fct.EventLogTime, fct.UtcTime, fct.ProcessId, fct.Image, fct.TargetFileName,
-			fct.CreationUtcTime).
+			fct.CreationUtcTime, html).
 		QueryStruct(&fct)
 
 	if err != nil {
@@ -995,11 +1029,9 @@ func (p *Processor) parseFileCreate(it ImportTask, eventLogTime time.Time, data 
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-	<strong>Target File Name:</strong> %s<br><strong>Creation Time (UTC):</strong> %s<br><strong>`,
-			fct.ProcessId, fct.Image, fct.TargetFileName, fct.CreationUtcTime.Format("15:04:05 02/01/2006")),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation Time (UTC): %s`,
-			fct.ProcessId, strings.ToLower(fct.Image), strings.ToLower(fct.TargetFileName),
+			fct.ProcessId, fct.Image, fct.TargetFileName,
 			fct.CreationUtcTime.Format("15:04:05 02/01/2006"))
 }
 
@@ -1046,19 +1078,19 @@ func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, da
 			processId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			image = dataRes[DATA_VALUE]
+			image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "eventtype":
-			eventType = dataRes[DATA_VALUE]
+			eventType = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetobject":
-			targetObject = dataRes[DATA_VALUE]
+			targetObject = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "details":
-			details = dataRes[DATA_VALUE]
+			details = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "newname":
-			newName = dataRes[DATA_VALUE]
+			newName = strings.ToLower(dataRes[DATA_VALUE])
 		}
 	}
 
@@ -1115,10 +1147,14 @@ func (p *Processor) parseRegistryEvent(it ImportTask, eventLogTime time.Time, da
 //
 func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (string, string) {
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s`,
+		rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject)
+
 	err := p.db.
 		InsertInto("registry_add_delete").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object").
-		Values(rad.Domain, rad.Host, rad.EventLogTime, rad.UtcTime, rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "html").
+		Values(rad.Domain, rad.Host, rad.EventLogTime, rad.UtcTime, rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject, html).
 		QueryStruct(&rad)
 
 	if err != nil {
@@ -1128,9 +1164,7 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s`,
-			rad.ProcessId, rad.Image, rad.EventType, rad.TargetObject),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s`,
 			rad.ProcessId, strings.ToLower(rad.Image), rad.EventType, rad.TargetObject)
 }
@@ -1138,10 +1172,15 @@ func (p *Processor) insertRegistryAddDeleteRecord(rad *RegistryAddDelete) (strin
 //
 func (p *Processor) insertRegistryRenameRecord(rr *RegistryRename) (string, string) {
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
+			<strong>New Name:</strong> %s`,
+		rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName)
+
 	err := p.db.
 		InsertInto("registry_rename").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "new_name").
-		Values(rr.Domain, rr.Host, rr.EventLogTime, rr.UtcTime, rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "new_name", "html").
+		Values(rr.Domain, rr.Host, rr.EventLogTime, rr.UtcTime, rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName, html).
 		QueryStruct(&rr)
 
 	if err != nil {
@@ -1151,10 +1190,7 @@ func (p *Processor) insertRegistryRenameRecord(rr *RegistryRename) (string, stri
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
-			<strong>New Name:</strong> %s`,
-			rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s New Name: %s`,
 			rr.ProcessId, rr.Image, rr.EventType, rr.TargetObject, rr.NewName)
 }
@@ -1162,10 +1198,15 @@ func (p *Processor) insertRegistryRenameRecord(rr *RegistryRename) (string, stri
 //
 func (p *Processor) insertRegistrySetValueRecord(rs *RegistrySet) (string, string) {
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
+			<strong>Details:</strong> %s`,
+			rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details)
+
 	err := p.db.
 		InsertInto("registry_set").
-		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "details").
-		Values(rs.Domain, rs.Host, rs.EventLogTime, rs.UtcTime, rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details).
+		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image", "event_type", "target_object", "details", "html").
+		Values(rs.Domain, rs.Host, rs.EventLogTime, rs.UtcTime, rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details, html).
 		QueryStruct(&rs)
 
 	if err != nil {
@@ -1175,10 +1216,7 @@ func (p *Processor) insertRegistrySetValueRecord(rs *RegistrySet) (string, strin
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-			<strong>Event Type:</strong> %s<br><strong>Target Object:</strong> %s<br>
-			<strong>Details:</strong> %s`,
-			rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Event Type: %s Target Object: %s Details: %s`,
 			rs.ProcessId, rs.Image, rs.EventType, rs.TargetObject, rs.Details)
 }
@@ -1224,10 +1262,10 @@ func (p *Processor) parseFileStream(it ImportTask, eventLogTime time.Time, data 
 			fs.ProcessId = goutil.ConvertStringToInt64(dataRes[DATA_VALUE])
 
 		case "image":
-			fs.Image = dataRes[DATA_VALUE]
+			fs.Image = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "targetfilename":
-			fs.TargetFileName = dataRes[DATA_VALUE]
+			fs.TargetFileName = strings.ToLower(dataRes[DATA_VALUE])
 
 		case "creationutctime":
 			parsedTimestamp, err := time.Parse(LAYOUT_PROCESS_UTC_TIME, strings.TrimSpace(dataRes[DATA_VALUE]))
@@ -1241,22 +1279,27 @@ func (p *Processor) parseFileStream(it ImportTask, eventLogTime time.Time, data 
 		case "hash":
 			indexOf = strings.Index(dataRes[DATA_VALUE], "MD5=")
 			if indexOf != -1 {
-				fs.Md5 = dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32]
+				fs.Md5 = strings.ToLower(dataRes[DATA_VALUE][indexOf+4 : indexOf+4+32])
 			}
 
 			indexOf = strings.Index(dataRes[DATA_VALUE], "SHA256=")
 			if indexOf != -1 {
-				fs.Sha256 = dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64]
+				fs.Sha256 = strings.ToLower(dataRes[DATA_VALUE][indexOf+7 : indexOf+7+64])
 			}
 		}
 	}
 
+	html := fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
+		<strong>Target File Name:</strong> %s<br><strong>Creation UTC Time:</strong> %s<br>
+		<strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s`,
+		fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256)
+
 	err := p.db.
 		InsertInto("file_stream").
 		Columns("domain", "host", "event_log_time", "utc_time", "process_id", "image",
-			"target_file_name", "creation_utc_time", "md5", "sha256").
+			"target_file_name", "creation_utc_time", "md5", "sha256", "html").
 		Values(fs.Domain, fs.Host, fs.EventLogTime, fs.UtcTime, fs.ProcessId, fs.Image,
-			fs.TargetFileName, fs.CreationUtcTime, fs.Md5, fs.Sha256).
+			fs.TargetFileName, fs.CreationUtcTime, fs.Md5, fs.Sha256, html).
 		QueryStruct(&fs)
 
 	if err != nil {
@@ -1266,11 +1309,8 @@ func (p *Processor) parseFileStream(it ImportTask, eventLogTime time.Time, data 
 		}
 	}
 
-	return fmt.Sprintf(`<strong>Process ID:</strong> %d<br><strong>Image:</strong> %s<br>
-		<strong>Target File Name:</strong> %s<br><strong>Creation UTC Time:</strong> %s<br>
-		<strong>MD5:</strong> %s<br><strong>SHA256:</strong> %s`,
-			fs.ProcessId, fs.Image, fs.TargetFileName, fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256),
+	return html,
 		fmt.Sprintf(`Process ID: %d Image: %s Target File Name: %s Creation UTC Time: %s MD5: %s SHA256: %s`,
-			fs.ProcessId, strings.ToLower(fs.Image), strings.ToLower(fs.TargetFileName),
-			fs.CreationUtcTime.Format("15:04:05 02/01/2006"), strings.ToLower(fs.Md5), strings.ToLower(fs.Sha256))
+			fs.ProcessId, fs.Image, fs.TargetFileName,
+			fs.CreationUtcTime.Format("15:04:05 02/01/2006"), fs.Md5, fs.Sha256)
 }

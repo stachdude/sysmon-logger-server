@@ -14,14 +14,14 @@ type Base struct {
 	Host         string    `db:"host"`
 	EventLogTime time.Time `db:"event_log_time"`
 	UtcTime      time.Time `db:"utc_time"`
+	Html      	 string    `db:"html"`
 }
 
 // Represents an "event" record
 type Event struct {
 	Base
-	Type        string `db:"type"`
-	Message     string `db:"message"`
-	MessageHtml string `db:"message_html"`
+	Type      string `db:"type"`
+	PlainText string `db:"plain_text"`
 }
 
 // Represents an "process" record

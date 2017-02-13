@@ -16,6 +16,12 @@ ALTER SEQUENCE file_create_id_seq RESTART WITH 1;
 TRUNCATE TABLE file_creation_time;
 ALTER SEQUENCE file_creation_time_id_seq RESTART WITH 1;
 
+TRUNCATE TABLE file_stream;
+ALTER SEQUENCE file_stream_id_seq RESTART WITH 1;
+
+TRUNCATE TABLE hunt_query;
+ALTER SEQUENCE hunt_query_id_seq RESTART WITH 1;
+
 TRUNCATE TABLE image_loaded;
 ALTER SEQUENCE image_loaded_id_seq RESTART WITH 1;
 
